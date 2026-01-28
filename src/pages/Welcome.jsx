@@ -142,7 +142,7 @@ export default function Welcome() {
 
         setSpinning(true);
         setShowMatchOverlay(false);
-        playSound('click'); // Button start click
+        playSound('power_click'); // Ultra Dopamine Start
 
         let spinCount = 0;
         const maxSpins = 15;
