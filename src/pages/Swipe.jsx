@@ -5,6 +5,7 @@ import UserCard from '../components/UserCard';
 import Layout from '../components/Layout';
 import { X, Heart, Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import LiveBackground from '../components/LiveBackground';
 
 export default function Swipe() {
     const [users, setUsers] = useState([]);
@@ -86,8 +87,9 @@ export default function Swipe() {
     if (loading) {
         return (
             <Layout>
-                <div className="flex items-center justify-center h-full">
-                    <Loader2 className="animate-spin text-primary" size={48} />
+                <LiveBackground />
+                <div className="relative z-10 flex items-center justify-center h-full">
+                    <Loader2 className="animate-spin text-neon-blue drop-shadow-[0_0_10px_rgba(0,243,255,0.8)]" size={48} />
                 </div>
             </Layout>
         );
@@ -95,15 +97,25 @@ export default function Swipe() {
 
     return (
         <Layout>
-            <div className="flex flex-col h-full p-4">
-                <header className="flex justify-between items-center mb-4 px-2">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">Happi</h1>
-                    <div className="bg-white p-2 rounded-full shadow-sm">
-                        <img src={tgUser?.photo_url || "https://i.pravatar.cc/100"} className="w-8 h-8 rounded-full" alt="Profile" />
+            <LiveBackground />
+
+            <div className="relative z-10 flex flex-col h-full p-4 overflow-hidden">
+                {/* Header - Floating Glass */}
+                <header className="flex justify-between items-center mb-6 px-4 py-3 rounded-full glass mx-2">
+                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent drop-shadow-sm">
+                        HAPPI
+                    </h1>
+                    <div className="p-1 rounded-full border border-white/20">
+                        <img
+                            src={tgUser?.photo_url || "https://randomuser.me/api/portraits/lego/2.jpg"}
+                            className="w-8 h-8 rounded-full border border-black/50"
+                            alt="Profile"
+                        />
                     </div>
                 </header>
 
-                <div className="relative flex-1 w-full max-w-sm mx-auto mb-8">
+                {/* Card Stack Area */}
+                <div className="relative flex-1 w-full max-w-sm mx-auto mb-4 perspective-1000">
                     <AnimatePresence>
                         {users.length > 0 ? (
                             users.map((user, index) => (
@@ -116,31 +128,36 @@ export default function Swipe() {
                                 )
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-center p-8 text-gray-500">
-                                <Heart size={64} className="mb-4 text-gray-300" />
-                                <h3 className="text-xl font-medium mb-2">No more profiles</h3>
-                                <p>Check back later for more people!</p>
-                                <button onClick={fetchUsers} className="mt-6 text-primary font-medium hover:underline">
-                                    Refresh
+                            <div className="flex flex-col items-center justify-center h-full text-center p-8 glass rounded-3xl mx-4 animate-float">
+                                <Heart size={64} className="mb-4 text-neon-red drop-shadow-[0_0_15px_rgba(255,0,85,0.6)]" />
+                                <h3 className="text-2xl font-bold mb-2 text-white">No more profiles</h3>
+                                <p className="text-gray-400 font-light">Expand your search area or check back later!</p>
+                                <button
+                                    onClick={fetchUsers}
+                                    className="mt-8 px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                                >
+                                    Refresh Radar
                                 </button>
                             </div>
                         )}
                     </AnimatePresence>
                 </div>
 
+                {/* Action Buttons - Bottom Floating */}
                 {users.length > 0 && (
-                    <div className="flex justify-center gap-8 mb-4">
+                    <div className="flex justify-center gap-10 mb-6 items-center">
                         <button
                             onClick={() => handleSwipe('left', users[users.length - 1])}
-                            className="p-4 bg-white rounded-full shadow-lg text-red-500 hover:scale-110 transition-transform ring-1 ring-gray-100"
+                            className="group p-5 bg-[#1a1a1a] rounded-full text-red-500 shadow-xl border border-red-500/30 hover:bg-red-500 hover:text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] hover:scale-110"
                         >
-                            <X size={32} />
+                            <X size={32} className="group-hover:rotate-12 transition-transform" />
                         </button>
+
                         <button
                             onClick={() => handleSwipe('right', users[users.length - 1])}
-                            className="p-4 bg-gradient-to-r from-primary to-pink-500 rounded-full shadow-lg text-white hover:scale-110 transition-transform"
+                            className="group p-5 bg-[#1a1a1a] rounded-full text-neon-blue shadow-xl border border-neon-blue/30 hover:bg-neon-blue hover:text-black transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,243,255,0.6)] hover:scale-110"
                         >
-                            <Heart size={32} fill="currentColor" />
+                            <Heart size={32} fill="currentColor" className="group-hover:scale-125 transition-transform" />
                         </button>
                     </div>
                 )}

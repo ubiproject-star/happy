@@ -12,6 +12,7 @@ export default function Splash({ onComplete }) {
 
     // Simplified hearts: Pale Red only
     // Gentle floating animation (hovering), not flying up.
+    // eslint-disable-next-line react-hooks/purity
     const hearts = React.useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
         id: i,
         left: Math.random() * 100,

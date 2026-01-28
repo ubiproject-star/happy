@@ -5,6 +5,7 @@
   --color-secondary: #EEEEEE;
   --color-neon-blue: #00f3ff;
   --color-neon-red: #ff0055;
+  --color-neon-purple: #bc13fe;
 }
 
 :root {
@@ -13,10 +14,9 @@
   font-weight: 400;
 
   color-scheme: dark;
-  /* Force dark mode preference for futuristic look */
   color: #ffffff;
-  background-color: #0f1014;
-  /* Deep dark background */
+  background-color: #050511;
+  /* Even darker, premium dark blue/black */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -30,7 +30,9 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #0f1014;
+  background-color: #050511;
+  overflow: hidden;
+  /* Prevent scroll on body level */
 }
 
 #root {
@@ -39,17 +41,91 @@ body {
   margin: 0 auto;
 }
 
-/* Custom Utilities for Neon Effects */
-.neon-box-blue {
-  box-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3);
-  border: 1px solid rgba(0, 243, 255, 0.4);
+/* --- Premium Utilities --- */
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-.neon-box-red {
-  box-shadow: 0 0 10px rgba(255, 0, 85, 0.5), 0 0 20px rgba(255, 0, 85, 0.3);
-  border: 1px solid rgba(255, 0, 85, 0.4);
+.glass-panel {
+  background: linear-gradient(180deg, rgba(20, 20, 30, 0.8) 0%, rgba(10, 10, 20, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.neon-text {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 0 10px currentColor;
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+  }
+}
+
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-glow 3s infinite;
+}
+
+/* Neon Text */
+.text-glow {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px currentColor;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
