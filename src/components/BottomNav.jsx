@@ -12,7 +12,7 @@ export default function BottomNav() {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-6 flex justify-between items-center z-50 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe pt-2 px-6 flex justify-around items-center z-50 shadow-lg">
             {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (

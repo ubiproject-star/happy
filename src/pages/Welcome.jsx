@@ -4,7 +4,7 @@ import useTelegram from '../hooks/useTelegram';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Settings, Zap, ChevronLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import MatchOverlay from '../components/MatchOverlay';
 
 // --- Sub-Components ---
@@ -186,25 +186,8 @@ export default function Welcome() {
                         <ChevronLeft size={24} />
                     </button>
 
-                    {/* Center: Arrowed Heart Animation */}
-                    <div className="flex flex-col items-center justify-center">
-                        <motion.div
-                            animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                            className="relative"
-                        >
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 fill-red-500/20 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
-                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                                {/* Arrow (Simple Representation) */}
-                                <path d="m2 2 20 20" className="stroke-white/80" strokeWidth="1.5" />
-                                <path d="m17 22 5-5" className="stroke-white/80" strokeWidth="1.5" />
-                                <path d="m2 7 5 5" className="stroke-white/80" strokeWidth="1.5" />
-                            </svg>
-                        </motion.div>
-                    </div>
-
                     {/* Right: User Profile & Name */}
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg">
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg ml-auto">
                         <span className="text-xs font-bold text-white max-w-[80px] truncate">
                             {user?.first_name || 'Guest'}
                         </span>
@@ -217,19 +200,6 @@ export default function Welcome() {
                         </div>
                     </div>
                 </header>
-
-                {/* Stats / Status Bar */}
-                <section className="flex justify-end mb-6 relative z-10" aria-label="User Stats">
-                    <div className="bg-[#1a1b26]/80 backdrop-blur-md border border-blue-500/20 rounded-lg px-4 py-1.5 flex items-center gap-3 shadow-lg">
-                        <span className="text-blue-300 font-bold text-sm tracking-tight">
-                            {user?.first_name || 'User'}, 25
-                        </span>
-                        <div className="h-4 w-px bg-gray-700" />
-                        <span className="text-orange-500 font-mono font-bold text-sm flex items-center gap-1">
-                            <Zap size={14} fill="currentColor" /> 420
-                        </span>
-                    </div>
-                </section>
 
                 {/* Face UI Section */}
                 <section className="flex-1 flex flex-col items-center justify-center relative z-10 mb-12" aria-label="Interactive Face Interface">
@@ -272,24 +242,6 @@ export default function Welcome() {
                     </div>
 
                 </section>
-
-                {/* Footer Tools */}
-                <footer className="relative z-10 px-8 pb-4 flex justify-between w-full">
-                    <button
-                        onClick={() => alert("Settings coming soon! ⚙️")}
-                        className="text-gray-500 hover:text-white transition-colors p-2"
-                        aria-label="Settings"
-                    >
-                        <Settings size={28} />
-                    </button>
-                    <button
-                        onClick={() => alert("Boost functionality coming soon! ⚡")}
-                        className="text-gray-500 hover:text-yellow-400 transition-colors p-2"
-                        aria-label="Boost"
-                    >
-                        <Zap size={28} />
-                    </button>
-                </footer>
 
             </main>
         </Layout>
