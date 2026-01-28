@@ -10,14 +10,25 @@ export default function Splash({ onComplete }) {
         return () => clearTimeout(timer);
     }, [onComplete]);
 
-    // Floating hearts background animation
-    const hearts = Array.from({ length: 40 }).map((_, i) => ({
+    // Colors for hearts: Vibrant & Premium
+    const colors = [
+        'text-red-600', 'text-pink-600', 'text-purple-600',
+        'text-rose-500', 'text-fuchsia-600', 'text-orange-500',
+        'text-indigo-500', 'text-violet-600'
+    ];
+
+    // Denser, faster, multi-colored hearts
+    const hearts = Array.from({ length: 80 }).map((_, i) => ({
         id: i,
-        x: Math.random() * 100, // random position %
-        y: Math.random() * 100 + 100, // Start slightly below/off screen
-        scale: Math.random() * 0.8 + 0.5,
-        duration: Math.random() * 1.5 + 2, // Faster: 2-3.5s
-        delay: Math.random() * 0.5
+        // Spread evenly across the width (0% to 100%)
+        left: Math.random() * 100,
+        y: Math.random() * 100 + 100,
+        // Larger hearts: 2rem to 5rem base
+        scale: Math.random() * 1.5 + 1.0,
+        duration: Math.random() * 3 + 2,
+        delay: Math.random() * 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotate: Math.random() * 360
     }));
 
     return (
@@ -26,41 +37,58 @@ export default function Splash({ onComplete }) {
             {hearts.map((heart) => (
                 <motion.div
                     key={heart.id}
-                    initial={{ opacity: 0, y: "110vh", x: `${heart.x}vw` }}
+                    // Use 'left' for positioning to cover full screen width
+                    style={{
+                        left: `${heart.left}%`,
+                        fontSize: `${heart.scale}rem`
+                    }}
+                    initial={{ opacity: 0, y: "110vh", rotate: heart.rotate }}
                     animate={{
-                        opacity: [0, 0.8, 0],
-                        y: "-10vh"
+                        opacity: [0, 1, 1, 0], // Fully visible (1) for most of the flight
+                        y: "-20vh",
+                        rotate: heart.rotate + 180
                     }}
                     transition={{
                         duration: heart.duration,
                         repeat: Infinity,
-                        ease: "linear",
+                        ease: "easeOut",
                         delay: heart.delay
                     }}
-                    className="absolute text-pink-500/70 pointer-events-none"
-                    style={{ fontSize: `${heart.scale * 3}rem` }}
+                    className={`absolute ${heart.color} drop-shadow-md`}
                 >
                     ♥
                 </motion.div>
             ))}
 
-            {/* Main Logo Animation */}
+            {/* Main Logo Animation w/ Premium Reveal */}
             <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                initial={{ scale: 0.5, opacity: 0, y: 50 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                    duration: 1.5
+                }}
                 className="relative z-10 flex flex-col items-center"
             >
+                {/* Glow Effect */}
+                <motion.div
+                    className="absolute inset-0 bg-pink-400 rounded-full blur-3xl opacity-20"
+                    animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                />
+
                 <motion.img
                     src={logo}
                     alt="Happi Logo"
-                    className="w-48 h-auto mb-8 drop-shadow-xl"
+                    className="w-56 h-auto mb-10 drop-shadow-2xl"
                     animate={{
-                        filter: ["brightness(1)", "brightness(1.1)", "brightness(1)"],
-                        scale: [1, 1.05, 1]
+                        y: [0, -10, 0],
+                        filter: ["drop-shadow(0 10px 10px rgba(255,100,100,0.2))", "drop-shadow(0 25px 25px rgba(255,100,100,0.4))", "drop-shadow(0 10px 10px rgba(255,100,100,0.2))"]
                     }}
                     transition={{
-                        duration: 2,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
