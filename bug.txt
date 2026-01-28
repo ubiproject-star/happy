@@ -1,0 +1,1 @@
+Error: Failed to run sql query: ERROR: 42704: type "geography" does not exist LINE 12: location geography(point), -- For location-based matching ^
