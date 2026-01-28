@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
 
 export default function useTelegram() {
-    const [user, setUser] = useState(WebApp.initDataUnsafe?.user || null);
+    const [user] = useState(WebApp.initDataUnsafe?.user || null);
 
     useEffect(() => {
         // Expand the mini app to full height

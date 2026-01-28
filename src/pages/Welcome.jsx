@@ -4,8 +4,9 @@ import useTelegram from '../hooks/useTelegram';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Volume2, VolumeX } from 'lucide-react';
 import MatchOverlay from '../components/MatchOverlay';
+import { useSound } from '../contexts/SoundContext';
 
 // --- Sub-Components ---
 
@@ -52,39 +53,47 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
 );
 
 const NoseButton = ({ spinning, onClick }) => (
-    <div className="relative z-30 group">
+    <div className="relative z-30 group perspective-500">
         <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileTap={{
+                scale: 0.95,
+                translateY: 10,
+                boxShadow: "0px 5px 0px 0px #7f1d1d, 0px 5px 20px rgba(220, 38, 38, 0.4)"
+            }}
             onClick={onClick}
             disabled={spinning}
             aria-label="Find Match"
             className={`
-                w-24 h-32 rounded-[3.5rem] flex items-center justify-center 
-                bg-gradient-to-b from-red-600 to-red-900 
-                border-t border-red-400/30 shadow-[0_0_40px_rgba(220,38,38,0.4)]
-                transition-all duration-300
-                ${spinning ? 'brightness-125 shadow-[0_0_60px_rgba(220,38,38,0.7)]' : 'hover:shadow-[0_0_50px_rgba(220,38,38,0.6)]'}
+                relative w-28 h-36 rounded-[4rem] flex items-center justify-center 
+                bg-gradient-to-br from-[#ef4444] to-[#991b1b]
+                border-t border-white/20
+                shadow-[0px_15px_0px_0px_#7f1d1d,0px_20px_40px_rgba(220,38,38,0.5)]
+                transition-transform duration-100
+                ${spinning ? 'brightness-110' : ''}
             `}
         >
-            <span className="text-4xl font-black text-white drop-shadow-md font-mono tracking-tighter">
-                {spinning ? '•••' : '100'}
+            <div className="absolute inset-2 rounded-[3.5rem] bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+            <span className="text-5xl font-black text-white drop-shadow-md font-mono tracking-tighter pb-2">
+                {spinning ? '••' : 'GO'}
             </span>
         </motion.button>
-        {/* Glows */}
-        <div className="absolute bottom-6 -left-4 w-2 h-12 bg-red-500/30 rounded-full blur-xl" />
-        <div className="absolute bottom-6 -right-4 w-2 h-12 bg-red-500/30 rounded-full blur-xl" />
+        {/* Ambient Glow */}
+        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-40 h-16 bg-red-600/30 rounded-full blur-2xl -z-10" />
     </div>
 );
 
 const MouthBar = () => (
-    <div className="w-64 h-12 relative mt-4">
-        <svg viewBox="0 0 300 60" className="w-full h-full drop-shadow-[0_0_10px_rgba(59,130,246,0.6)]">
-            <path
+    <div className="w-64 h-12 relative mt-8">
+        <svg viewBox="0 0 300 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">
+            <motion.path
                 d="M 20 20 Q 150 60 280 20"
                 fill="none"
                 stroke="url(#mouth-gradient)"
                 strokeWidth="6"
                 strokeLinecap="round"
+                initial={{ d: "M 20 20 Q 150 60 280 20" }}
+                animate={{ d: ["M 20 20 Q 150 60 280 20", "M 20 25 Q 150 70 280 25", "M 20 20 Q 150 60 280 20"] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             />
             <defs>
                 <linearGradient id="mouth-gradient" x1="0" y1="0" x2="1" y2="0">
@@ -102,6 +111,7 @@ const MouthBar = () => (
 export default function Welcome() {
     const { user } = useTelegram();
     const navigate = useNavigate();
+    const { playSound, initAudio, muted, toggleMute } = useSound();
 
     const [matches, setMatches] = useState([]);
     const [currentMatch, setCurrentMatch] = useState(null);
@@ -121,44 +131,61 @@ export default function Welcome() {
         fetchUsers();
     }, []);
 
+    // Provide a way to interact first
+    const handleInteractionStart = () => {
+        initAudio();
+    };
+
     const handleSpin = useCallback(() => {
+        handleInteractionStart();
         if (spinning || matches.length === 0) return;
+
         setSpinning(true);
         setShowMatchOverlay(false);
+        playSound('click'); // Button start click
 
         let spinCount = 0;
-        const maxSpins = 15; // Number of flickers
+        const maxSpins = 15;
+
+        // Sound interval for ticking
+        const tickInterval = setInterval(() => {
+            playSound('spin');
+        }, 120);
 
         const spinInterval = setInterval(() => {
-            // Pick a random index for "slot" effect
             const randomIndex = Math.floor(Math.random() * matches.length);
             setCurrentMatch(matches[randomIndex]);
 
             spinCount++;
             if (spinCount >= maxSpins) {
                 clearInterval(spinInterval);
+                clearInterval(tickInterval);
                 setSpinning(false);
-                // Trigger Match Overlay
+
+                // Trigger Match
                 setTimeout(() => {
+                    playSound('match');
                     setShowMatchOverlay(true);
-                }, 500);
+                }, 400);
             }
-        }, 120); // Speed of flickering
-    }, [spinning, matches]);
+        }, 120);
+    }, [spinning, matches, playSound, initAudio, handleInteractionStart]);
 
     const handleChat = () => {
+        playSound('click');
         if (currentMatch) {
             navigate(`/chat/${currentMatch.id}`);
         }
     };
 
     const handleKeepSwiping = () => {
+        playSound('click');
         setShowMatchOverlay(false);
     };
 
     return (
         <Layout>
-            <main className="flex flex-col h-full bg-[#0f1014] text-white p-4 relative overflow-hidden">
+            <main onClick={handleInteractionStart} className="flex flex-col h-full bg-[#0f1014] text-white p-4 relative overflow-hidden">
                 {/* Match Overlay */}
                 <AnimatePresence>
                     {showMatchOverlay && currentMatch && (
@@ -176,18 +203,27 @@ export default function Welcome() {
                 <div role="presentation" className="absolute top-1/2 -right-20 w-80 h-80 bg-red-500/10 rounded-full blur-[100px]" />
 
                 {/* Header Section */}
-                <header className="flex justify-between items-center relative z-10 mb-2 px-2">
-                    {/* Left: Back Button (Preserved) */}
+                <header className="flex justify-between items-center relative z-10 mb-6 px-2">
+                    {/* Left: Back */}
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
+                        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 active:bg-white/10 transition-colors"
                         aria-label="Go back"
                     >
                         <ChevronLeft size={24} />
                     </button>
 
-                    {/* Right: User Profile & Name */}
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg ml-auto">
+                    {/* Center: Mute Toggle */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                        className="flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-transform"
+                    >
+                        {muted ? <VolumeX size={18} className="text-gray-400" /> : <Volume2 size={18} className="text-neon-blue" />}
+                        <span className="text-xs font-medium text-gray-300">{muted ? 'OFF' : 'ON'}</span>
+                    </button>
+
+                    {/* Right: Profile */}
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg">
                         <span className="text-xs font-bold text-white max-w-[80px] truncate">
                             {user?.first_name || 'Guest'}
                         </span>
@@ -202,14 +238,14 @@ export default function Welcome() {
                 </header>
 
                 {/* Face UI Section */}
-                <section className="flex-1 flex flex-col items-center justify-center relative z-10 mb-12" aria-label="Interactive Face Interface">
+                <section className="flex-1 flex flex-col items-center justify-center relative z-10 mb-20" aria-label="Interactive Face Interface">
 
                     {/* Eyes Row */}
-                    <div className="flex items-center justify-center gap-6 mb-8 w-full max-w-sm">
+                    <div className="flex items-center justify-center gap-8 mb-12 w-full max-w-sm">
 
-                        {/* LEFT EYE: User Profile */}
-                        <article className="flex flex-col items-center">
-                            <EyeContainer borderColor="border-blue-500" shadowColor="shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                        {/* LEFT EYE */}
+                        <article className="flex flex-col items-center group">
+                            <EyeContainer borderColor="border-blue-500" shadowColor="shadow-[0_0_40px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_60px_rgba(59,130,246,0.5)] transition-shadow duration-500">
                                 <div onClick={() => navigate('/profile')} className="cursor-pointer w-full h-full">
                                     <UserAvatar
                                         url={user?.photo_url || "https://i.pravatar.cc/300?img=11"}
@@ -219,9 +255,9 @@ export default function Welcome() {
                             </EyeContainer>
                         </article>
 
-                        {/* RIGHT EYE: Match Output */}
-                        <article className="flex flex-col items-center">
-                            <EyeContainer borderColor="border-red-500" shadowColor="shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                        {/* RIGHT EYE */}
+                        <article className="flex flex-col items-center group">
+                            <EyeContainer borderColor="border-red-500" shadowColor="shadow-[0_0_40px_rgba(239,68,68,0.3)] group-hover:shadow-[0_0_60px_rgba(239,68,68,0.5)] transition-shadow duration-500">
                                 <SlotMachine
                                     currentMatch={currentMatch}
                                     spinning={spinning}
@@ -232,12 +268,12 @@ export default function Welcome() {
 
                     </div>
 
-                    {/* Nose & Mouth Column */}
-                    <div className="flex flex-col items-center">
-                        {/* NOSE: Trigger */}
+                    {/* Nose & Mouth */}
+                    <div className="flex flex-col items-center gap-8">
+                        {/* NOSE: 3D Trigger */}
                         <NoseButton spinning={spinning} onClick={handleSpin} />
 
-                        {/* MOUTH: Visuals */}
+                        {/* MOUTH: Animated Visuals */}
                         <MouthBar />
                     </div>
 

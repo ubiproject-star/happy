@@ -23,7 +23,8 @@ export default function Splash({ onComplete }) {
             duration: Math.random() * 3 + 3,
             delay: Math.random() * 2
         }));
-        setHearts(generatedHearts);
+        // Avoid synchronous set state warning
+        setTimeout(() => setHearts(generatedHearts), 0);
     }, []);
 
     return (

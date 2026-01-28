@@ -129,3 +129,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* 3D Utilities */
+.perspective-500 {
+  perspective: 500px;
+}
+
+/* Safe Area Utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
