@@ -1,172 +1,150 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useTelegram } from '../hooks/useTelegram';
-import Card from '../components/Card';
-import { Heart, X, MessageCircle, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import useTelegram from '../hooks/useTelegram';
+import UserCard from '../components/UserCard';
+import Layout from '../components/Layout';
+import { X, Heart, Loader2 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 export default function Swipe() {
-    const { user } = useTelegram();
-    const [profiles, setProfiles] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user: tgUser } = useTelegram();
 
     useEffect(() => {
-        if (user) {
-            fetchProfiles();
-        }
-    }, [user]);
+        fetchUsers();
+    }, [tgUser]);
 
-    const fetchProfiles = async () => {
-        setLoading(true);
-        // 1. Get IDs of users already swiped
-        const { data: swiped } = await supabase
-            .from('swipes')
-            .select('liked_id')
-            .eq('liker_id', user.id.toString());
+    const fetchUsers = async () => {
+        try {
+            // In a real app, we would filter out users already swiped
+            // For now, just fetch everyone except self (if we had self ID)
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .limit(10);
 
-        const swipedIds = swiped?.map(s => s.liked_id) || [];
-        swipedIds.push(user.id.toString()); // Exclude self
+            if (error) throw error;
 
-        // 2. Fetch users not in swipedIds
-        const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .not('id', 'in', `(${swipedIds.join(',')})`)
-            .limit(10);
-
-        if (error) {
-            console.error(error);
-        } else {
-            setProfiles(data || []);
-        }
-        setLoading(false);
-    };
-
-    const handleSwipe = async (direction, profileId) => {
-        const isLike = direction === 'right';
-
-        // Optimistic remove
-        setProfiles(prev => prev.filter(p => p.id !== profileId));
-
-        // DB Insert
-        await supabase.from('swipes').insert({
-            liker_id: user.id.toString(),
-            liked_id: profileId,
-            is_like: isLike,
-        });
-
-        if (isLike) {
-            checkForMatch(profileId);
-        }
-
-        if (profiles.length <= 1) {
-            // Fetch more in background
-            fetchProfiles();
+            setUsers(data || []);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const checkForMatch = async (otherUserId) => {
-        const { data } = await supabase
-            .from('swipes')
-            .select('*')
-            .eq('liker_id', otherUserId)
-            .eq('liked_id', user.id.toString())
-            .eq('is_like', true)
-            .single();
+    const handleSwipe = async (direction, swipedUser) => {
+        // Remove user from stack locally
+        const newUsers = users.filter(u => u.id !== swipedUser.id);
+        setUsers(newUsers);
 
-        if (data) {
-            await supabase.from('matches').insert({
-                user1_id: user.id.toString(),
-                user2_id: otherUserId,
-            });
-            // In a real app, show a modal here
-            alert("It's a Match! 🎉");
+        // If swipe right (like), record it in DB
+        if (direction === 'right') {
+            try {
+                // Demo mode: use a fake self ID if no TG user
+                const likerId = tgUser?.id?.toString() || 'user_m_1';
+
+                const { error } = await supabase
+                    .from('swipes')
+                    .insert({
+                        liker_id: likerId,
+                        liked_id: swipedUser.id,
+                        is_like: true
+                    });
+
+                if (error) {
+                    // Ignore unique constraint errors (already swiped)
+                    if (error.code !== '23505') console.error('Error recording swipe:', error);
+                } else {
+                    // Check for mutual like (Match)
+                    const { data: mutualLike } = await supabase
+                        .from('swipes')
+                        .select('*')
+                        .eq('liker_id', swipedUser.id)
+                        .eq('liked_id', likerId)
+                        .eq('is_like', true)
+                        .single();
+
+                    if (mutualLike) {
+                        // It's a match!
+                        alert("It's a Match! 🎉"); // Simple alert for MVP
+                        await supabase
+                            .from('matches')
+                            .insert({
+                                user1_id: likerId,
+                                user2_id: swipedUser.id
+                            });
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
     };
 
-    const refreshProfiles = () => {
-        fetchProfiles();
-    };
-
-    if (!user) return <div className="h-screen flex items-center justify-center">Loading...</div>;
+    if (loading) {
+        return (
+            <Layout>
+                <div className="flex items-center justify-center h-full">
+                    <Loader2 className="animate-spin text-primary" size={48} />
+                </div>
+            </Layout>
+        );
+    }
 
     return (
-        <div className="relative w-full h-screen overflow-hidden bg-gradient-to-tr from-rose-50 to-orange-50 font-sans text-gray-800">
-            {/* Top Header */}
-            <div className="absolute top-0 left-0 right-0 p-6 z-50 flex justify-between items-center bg-white/50 backdrop-blur-md shadow-sm rounded-b-3xl">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">H</div>
-                    <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500 tracking-tight">happi</h1>
-                </div>
-                <Link to="/matches" className="p-3 bg-white rounded-full shadow-lg text-gray-500 hover:text-primary transition-all hover:scale-110 active:scale-95">
-                    <MessageCircle size={24} />
-                </Link>
-            </div>
+        <Layout>
+            <div className="flex flex-col h-full p-4">
+                <header className="flex justify-between items-center mb-4 px-2">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-pink-500 bg-clip-text text-transparent">Happi</h1>
+                    <div className="bg-white p-2 rounded-full shadow-sm">
+                        <img src={tgUser?.photo_url || "https://i.pravatar.cc/100"} className="w-8 h-8 rounded-full" alt="Profile" />
+                    </div>
+                </header>
 
-            {/* Main Content Area */}
-            <div className="relative w-full h-full flex flex-col items-center justify-center">
-                <div className="w-full max-w-sm h-[65vh] relative px-4">
+                <div className="relative flex-1 w-full max-w-sm mx-auto mb-8">
                     <AnimatePresence>
-                        {profiles.map((profile, index) => (
-                            <Card
-                                key={profile.id}
-                                profile={profile}
-                                onSwipe={(dir) => handleSwipe(dir, profile.id)}
-                                style={{ zIndex: profiles.length - index }}
-                            />
-                        ))}
-                    </AnimatePresence>
-
-                    {profiles.length === 0 && !loading && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-white/80 rounded-3xl shadow-xl border-2 border-dashed border-gray-200"
-                        >
-                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                                <RefreshCw className="text-primary w-10 h-10" />
+                        {users.length > 0 ? (
+                            users.map((user, index) => (
+                                index === users.length - 1 && (
+                                    <UserCard
+                                        key={user.id}
+                                        user={user}
+                                        onSwipe={(dir) => handleSwipe(dir, user)}
+                                    />
+                                )
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-center p-8 text-gray-500">
+                                <Heart size={64} className="mb-4 text-gray-300" />
+                                <h3 className="text-xl font-medium mb-2">No more profiles</h3>
+                                <p>Check back later for more people!</p>
+                                <button onClick={fetchUsers} className="mt-6 text-primary font-medium hover:underline">
+                                    Refresh
+                                </button>
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-800 mb-2">That's everyone!</h2>
-                            <p className="text-gray-500 mb-8">No more profiles nearby.</p>
-
-                            <button
-                                onClick={refreshProfiles}
-                                className="px-8 py-3 bg-primary text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-                            >
-                                Refresh
-                            </button>
-                        </motion.div>
-                    )}
-
-                    {loading && profiles.length === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                        </div>
-                    )}
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
 
-            {/* Bottom Controls */}
-            <div className="absolute bottom-10 left-0 right-0 flex justify-center items-center gap-6 z-50 px-4">
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => profiles.length > 0 && handleSwipe('left', profiles[0].id)}
-                    className="w-16 h-16 bg-white text-rose-500 rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.1)] flex items-center justify-center border-2 border-transparent hover:border-rose-100"
-                >
-                    <X size={32} strokeWidth={3} />
-                </motion.button>
-
-                <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => profiles.length > 0 && handleSwipe('right', profiles[0].id)}
-                    className="w-20 h-20 bg-gradient-to-br from-primary to-rose-600 text-white rounded-full shadow-[0_10px_25px_rgba(255,75,75,0.3)] flex items-center justify-center"
-                >
-                    <Heart size={36} strokeWidth={3} fill="currentColor" />
-                </motion.button>
+                {users.length > 0 && (
+                    <div className="flex justify-center gap-8 mb-4">
+                        <button
+                            onClick={() => handleSwipe('left', users[users.length - 1])}
+                            className="p-4 bg-white rounded-full shadow-lg text-red-500 hover:scale-110 transition-transform ring-1 ring-gray-100"
+                        >
+                            <X size={32} />
+                        </button>
+                        <button
+                            onClick={() => handleSwipe('right', users[users.length - 1])}
+                            className="p-4 bg-gradient-to-r from-primary to-pink-500 rounded-full shadow-lg text-white hover:scale-110 transition-transform"
+                        >
+                            <Heart size={32} fill="currentColor" />
+                        </button>
+                    </div>
+                )}
             </div>
-        </div>
+        </Layout>
     );
 }

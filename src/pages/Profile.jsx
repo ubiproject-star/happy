@@ -1,125 +1,117 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useTelegram } from '../hooks/useTelegram';
-import { useNavigate } from 'react-router-dom';
+import useTelegram from '../hooks/useTelegram';
+import Layout from '../components/Layout';
+import { Camera, Save } from 'lucide-react';
 
 export default function Profile() {
-    const { user } = useTelegram();
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const { user: tgUser } = useTelegram();
+    const [profile, setProfile] = useState({
+        first_name: '',
         bio: '',
-        gender: 'male',
-        looking_for: 'female',
+        looking_for: 'all',
+        photo_url: '',
     });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        async function checkUser() {
-            if (!user) return;
-
-            const { data } = await supabase.from('users').select('*').eq('id', user.id.toString()).single();
-
-            if (data) {
-                setFormData({
-                    bio: data.bio || '',
-                    gender: data.gender || 'male',
-                    looking_for: data.looking_for || 'female',
-                });
-            }
-        }
-        checkUser();
-    }, [user]);
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        if (!user) {
-            alert("Please open this app in Telegram!");
-            setLoading(false);
-            return;
-        }
-
-        const updates = {
-            id: user.id.toString(),
-            first_name: user.first_name,
-            username: user.username,
-            ...formData,
-            photo_url: user.photo_url,
-            updated_at: new Date(),
-        };
-
-        const { error } = await supabase.from('users').upsert(updates);
-
-        if (error) {
-            alert(error.message);
+        if (tgUser) {
+            // Fetch or init profile
+            // For demo, we just rely on local state or fake fetch
+            setProfile(prev => ({
+                ...prev,
+                first_name: tgUser.first_name,
+                photo_url: tgUser.photo_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+            }));
         } else {
-            navigate('/swipe');
+            // Fallback dev mode
+            setProfile({
+                first_name: 'Demo User',
+                bio: 'I love coding and coffee.',
+                looking_for: 'female',
+                photo_url: 'https://randomuser.me/api/portraits/men/99.jpg'
+            });
         }
-        setLoading(false);
+    }, [tgUser]);
+
+    const handleSave = async () => {
+        setLoading(true);
+        // Simulate save
+        setTimeout(() => {
+            setLoading(false);
+            alert('Profile Updated!');
+        }, 1000);
+        // In real app: await supabase.from('users').upsert({...})
     };
 
     return (
-        <div className="p-6 max-w-md mx-auto h-screen flex flex-col justify-center bg-white">
-            <h2 className="text-3xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500">Your Profile</h2>
+        <Layout>
+            <div className="p-4 pb-24">
+                <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
+                <div className="flex flex-col items-center mb-8">
                     <div className="relative">
-                        <select
-                            name="gender"
-                            value={formData.gender}
-                            onChange={handleChange}
-                            className="w-full p-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none font-medium text-gray-700"
-                        >
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▼</div>
+                        <img
+                            src={profile.photo_url}
+                            alt="Profile"
+                            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                        />
+                        <button className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full shadow-md">
+                            <Camera size={20} />
+                        </button>
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Looking For</label>
-                    <div className="relative">
-                        <select
-                            name="looking_for"
-                            value={formData.looking_for}
-                            onChange={handleChange}
-                            className="w-full p-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none font-medium text-gray-700"
-                        >
-                            <option value="female">Female</option>
-                            <option value="male">Male</option>
-                            <option value="everyone">Everyone</option>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">▼</div>
+                <div className="space-y-4 text-left">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input
+                            type="text"
+                            value={profile.first_name}
+                            onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                            className="w-full p-3 rounded-lg bg-white border border-gray-200 focus:ring-2 focus:ring-primary outline-none"
+                            disabled
+                        />
+                        <span className="text-xs text-gray-400">Name is synced with Telegram</span>
                     </div>
-                </div>
 
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Bio</label>
-                    <textarea
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        placeholder="Tell us about yourself..."
-                        className="w-full p-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all h-32 resize-none font-medium text-gray-700"
-                    />
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">About Me</label>
+                        <textarea
+                            value={profile.bio}
+                            onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                            className="w-full p-3 rounded-lg bg-white border border-gray-200 focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
+                            placeholder="Tell others about yourself..."
+                        />
+                    </div>
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-4 bg-gradient-to-r from-primary to-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {loading ? 'Save & Start Swiping' : 'Start Swiping'}
-                </button>
-            </form>
-        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Looking For</label>
+                        <select
+                            value={profile.looking_for}
+                            onChange={(e) => setProfile({ ...profile, looking_for: e.target.value })}
+                            className="w-full p-3 rounded-lg bg-white border border-gray-200 outline-none"
+                        >
+                            <option value="male">Men</option>
+                            <option value="female">Women</option>
+                            <option value="all">Everyone</option>
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={handleSave}
+                        disabled={loading}
+                        className="w-full mt-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                    >
+                        {loading ? 'Saving...' : (
+                            <>
+                                <Save size={20} />
+                                Save Profile
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </Layout>
     );
 }

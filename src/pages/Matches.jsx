@@ -1,110 +1,102 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useTelegram } from '../hooks/useTelegram';
+import useTelegram from '../hooks/useTelegram';
+import Layout from '../components/Layout';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Search } from 'lucide-react';
+import { MessageCircle, Loader2 } from 'lucide-react';
 
 export default function Matches() {
-    const { user } = useTelegram();
     const [matches, setMatches] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const { user: tgUser } = useTelegram();
 
     useEffect(() => {
-        if (user) {
-            fetchMatches();
-        }
-    }, [user]);
+        fetchMatches();
+    }, [tgUser]);
 
     const fetchMatches = async () => {
-        // 1. Get match records
-        const { data: matchData, error } = await supabase
-            .from('matches')
-            .select('*')
-            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        try {
+            const myId = tgUser?.id?.toString() || 'user_m_1';
 
-        if (error || !matchData) return;
+            // Fetch matches where I am user1 or user2
+            const { data: matchesData, error } = await supabase
+                .from('matches')
+                .select(`
+                id,
+                user1:user1_id(*),
+                user2:user2_id(*)
+            `)
+                .or(`user1_id.eq.${myId},user2_id.eq.${myId}`);
 
-        // 2. Extract OTHER user IDs
-        const otherUserIds = matchData.map(m =>
-            m.user1_id === user.id.toString() ? m.user2_id : m.user1_id
-        );
+            if (error) throw error;
 
-        if (otherUserIds.length === 0) return;
+            // Transform data to get the distinct "other" user
+            const formattedMatches = matchesData.map(match => {
+                const otherUser = match.user1.id === myId ? match.user2 : match.user1;
+                return {
+                    match_id: match.id,
+                    user: otherUser
+                };
+            });
 
-        // 3. Fetch profiles
-        const { data: profiles } = await supabase
-            .from('users')
-            .select('*')
-            .in('id', otherUserIds);
-
-        setMatches(profiles || []);
+            setMatches(formattedMatches);
+        } catch (error) {
+            console.error('Error fetching matches:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    if (loading) {
+        return (
+            <Layout>
+                <div className="flex h-full items-center justify-center">
+                    <Loader2 className="animate-spin text-primary" size={32} />
+                </div>
+            </Layout>
+        );
+    }
+
     return (
-        <div className="h-screen bg-white flex flex-col font-sans">
-            <div className="p-4 pt-6 flex flex-col gap-4 bg-white sticky top-0 z-10">
-                <div className="flex items-center gap-2">
-                    <Link to="/swipe" className="p-2 -ml-2 text-gray-400 hover:text-gray-800 transition-colors">
-                        <ChevronLeft size={32} />
-                    </Link>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Messages</h1>
-                </div>
+        <Layout>
+            <div className="p-4">
+                <h2 className="text-2xl font-bold mb-6 text-left">Recent Matches</h2>
 
-                <div className="relative">
-                    <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search matches..."
-                        className="w-full bg-gray-100 py-3 pl-10 pr-4 rounded-xl text-gray-700 outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                    />
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto pb-4">
-                {/* New Matches (Horizontal) */}
-                <div className="px-5 mt-2 mb-6">
-                    <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">New Matches</h2>
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                        {matches.map((match) => (
-                            <Link key={match.id} to={`/chat/${match.id}`} className="flex flex-col items-center flex-shrink-0 cursor-pointer hover:scale-105 transition-transform">
-                                <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-orange-400">
+                {matches.length === 0 ? (
+                    <div className="text-center mt-20 text-gray-500">
+                        <p>No matches yet.</p>
+                        <p className="text-sm">Start swiping to find people!</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                        {matches.map(({ match_id, user }) => (
+                            <Link
+                                to={`/chat/${match_id}`}
+                                key={match_id}
+                                className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div className="relative">
                                     <img
-                                        src={match.photo_url || "https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100"}
-                                        alt={match.first_name}
-                                        className="w-full h-full rounded-full object-cover border-2 border-white"
+                                        src={user.photo_url || "https://i.pravatar.cc/150"}
+                                        alt={user.first_name}
+                                        className="w-16 h-16 rounded-full object-cover"
                                     />
+                                    <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                                 </div>
-                                <span className="text-sm font-semibold mt-2 text-gray-700">{match.first_name}</span>
+
+                                <div className="ml-4 flex-1 text-left">
+                                    <h3 className="font-bold text-lg">{user.first_name}</h3>
+                                    <p className="text-sm text-gray-500 line-clamp-1">Say hello! 👋</p>
+                                </div>
+
+                                <div className="p-2 bg-gray-50 rounded-full text-primary">
+                                    <MessageCircle size={20} />
+                                </div>
                             </Link>
                         ))}
-                        {matches.length === 0 && <p className="text-gray-400 text-sm">No new matches.</p>}
                     </div>
-                </div>
-
-                {/* Messages List */}
-                <div className="px-2">
-                    <h2 className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Conversations</h2>
-                    {matches.map(match => (
-                        <Link key={match.id} to={`/chat/${match.id}`} className="flex items-center p-3 rounded-2xl hover:bg-gray-50 transition-colors active:scale-[0.98]">
-                            <div className="relative">
-                                <img
-                                    src={match.photo_url || "https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100"}
-                                    alt={match.first_name}
-                                    className="w-16 h-16 rounded-full object-cover"
-                                />
-                            </div>
-
-                            <div className="ml-4 flex-1 border-b border-gray-100 pb-3">
-                                <div className="flex justify-between items-baseline mb-1">
-                                    <h3 className="font-bold text-lg text-gray-900">{match.first_name}</h3>
-                                </div>
-                                <p className="text-sm text-gray-500 truncate">
-                                    Tap to chat using default UI.
-                                </p>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                )}
             </div>
-        </div>
+        </Layout>
     );
 }
