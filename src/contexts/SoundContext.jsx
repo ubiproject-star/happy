@@ -16,62 +16,85 @@ const SOUNDS = {
     match: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3',
     click: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_73685e9aa2.mp3?filename=pop-39222.mp3',
     refresh: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_14275994b6.mp3?filename=whoosh-6316.mp3',
-    // Ultra Dopamine Button Sound (Futuristic/Power)
-    power_click: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=interface-124464.mp3'
+    // Ultra Dopamine Button Sound (Short & Exciting)
+    power_click: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3?filename=positive-notification-951.mp3'
 };
 
 export const SoundProvider = ({ children }) => {
     const [muted, setMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-    // Initialize with first track
-    const musicRef = useRef(new Audio(SOUNDS.playlist[0]));
+
+    // Singleton ref for music player
+    const musicRef = useRef(null);
     const [audioInitialized, setAudioInitialized] = useState(false);
 
+    // Initialize Audio Object Once
+    useEffect(() => {
+        musicRef.current = new Audio(SOUNDS.playlist[0]);
+        musicRef.current.volume = 0.4;
+        musicRef.current.loop = false; // Important: No loop, we handle playlist
+
+        return () => {
+            if (musicRef.current) {
+                musicRef.current.pause();
+                musicRef.current = null;
+            }
+        };
+    }, []);
+
+    // Handle Playlist Progression
     useEffect(() => {
         const music = musicRef.current;
-        music.volume = 0.4;
-        music.loop = false; // Playlist mode
+        if (!music) return;
 
         const handleEnded = () => {
+            console.log("Track ended. Advancing.");
             setCurrentTrackIndex(prev => (prev + 1) % SOUNDS.playlist.length);
         };
 
         music.addEventListener('ended', handleEnded);
-
-        return () => {
-            music.pause();
-            music.removeEventListener('ended', handleEnded);
-        };
+        return () => music.removeEventListener('ended', handleEnded);
     }, []);
 
-    // Effect to handle track changes
+    // Handle Track Change & Playback
     useEffect(() => {
         const music = musicRef.current;
-        // If track changed (and we've initialized), load and play new track
+        if (!music) return;
+
+        // Changing Track
         if (music.src !== SOUNDS.playlist[currentTrackIndex]) {
-            const wasPlaying = !music.paused && !muted;
+            // Pause current track before changing source to ensure clean transition
+            music.pause();
             music.src = SOUNDS.playlist[currentTrackIndex];
             music.load();
-            if (wasPlaying || (audioInitialized && !muted)) {
-                music.play().catch(console.error);
+
+            // If we are allowed to play, play the new track
+            if (audioInitialized && !muted) {
+                music.play().catch(e => console.log("Auto-advance play error:", e));
             }
         }
     }, [currentTrackIndex, audioInitialized, muted]);
 
+    // Handle Mute/Unmute
     useEffect(() => {
+        const music = musicRef.current;
+        if (!music) return;
+
         if (muted) {
-            musicRef.current.pause();
+            music.pause();
         } else if (audioInitialized) {
-            // Only play if we have interacted/initialized
-            musicRef.current.play().catch(e => console.log("Audio autoplay prevented:", e));
+            // Resume if unmuted and initialized
+            music.play().catch(() => { });
         }
     }, [muted, audioInitialized]);
 
     const initAudio = () => {
         if (!audioInitialized) {
             setAudioInitialized(true);
-            if (!muted) {
-                musicRef.current.play().catch(e => console.log("Play failed:", e));
+            // Unlock audio context
+            const music = musicRef.current;
+            if (music && !muted) {
+                music.play().catch(e => console.log("Init play error:", e));
             }
         }
     };
