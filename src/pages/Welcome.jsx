@@ -148,27 +148,23 @@ export default function Welcome() {
         const maxSpins = 15;
 
         // Sound interval for ticking
-        const tickInterval = setInterval(() => {
-            playSound('spin');
-        }, 120);
-
+        const speed = 100;
         const spinInterval = setInterval(() => {
+            playSound('spin'); // Tick every spin
+
             const randomIndex = Math.floor(Math.random() * matches.length);
             setCurrentMatch(matches[randomIndex]);
 
             spinCount++;
             if (spinCount >= maxSpins) {
                 clearInterval(spinInterval);
-                clearInterval(tickInterval);
                 setSpinning(false);
 
                 // Trigger Match
-                setTimeout(() => {
-                    playSound('match');
-                    setShowMatchOverlay(true);
-                }, 400);
+                playSound('match');
+                setShowMatchOverlay(true);
             }
-        }, 120);
+        }, speed);
     }, [spinning, matches, playSound, initAudio, handleInteractionStart]);
 
     const handleChat = () => {
@@ -179,7 +175,7 @@ export default function Welcome() {
     };
 
     const handleKeepSwiping = () => {
-        playSound('click');
+        playSound('refresh');
         setShowMatchOverlay(false);
     };
 

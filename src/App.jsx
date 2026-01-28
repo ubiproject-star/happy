@@ -7,11 +7,14 @@ import Matches from './pages/Matches';
 import Chat from './pages/Chat';
 import Splash from './components/Splash';
 
+import { useSound } from './contexts/SoundContext';
+
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const { initAudio } = useSound();
 
   if (showSplash) {
-    return <Splash onComplete={() => setShowSplash(false)} />;
+    return <Splash onComplete={() => setShowSplash(false)} onInteract={initAudio} />;
   }
 
   return (

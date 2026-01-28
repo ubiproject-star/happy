@@ -8,10 +8,12 @@ const SOUNDS = {
     music: 'https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fashion-house-126667.mp3',
     // Mechanical click/tick for spinning
     spin: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_cdae11a6c4.mp3?filename=ui-click-43196.mp3',
-    // Success/Match sound
+    // Success/Match sound - Victory
     match: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3',
-    // Button click
-    click: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=click-button-140881.mp3'
+    // Button click - Bubble Pop (Dopamine)
+    click: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_73685e9aa2.mp3?filename=pop-39222.mp3',
+    // Swoosh for refresh
+    refresh: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_14275994b6.mp3?filename=whoosh-6316.mp3'
 };
 
 export const SoundProvider = ({ children }) => {

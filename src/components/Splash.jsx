@@ -2,13 +2,16 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import logo from '../assets/happi-logo.png';
 
-export default function Splash({ onComplete }) {
+export default function Splash({ onComplete, onInteract }) {
     useEffect(() => {
+        // Try autoplay
+        if (onInteract) onInteract();
+
         const timer = setTimeout(() => {
             onComplete();
         }, 3000);
         return () => clearTimeout(timer);
-    }, [onComplete]);
+    }, [onComplete, onInteract]);
 
     // Simplified hearts: Pale Red only
     // Gentle floating animation (hovering), not flying up.
@@ -28,7 +31,7 @@ export default function Splash({ onComplete }) {
     }, []);
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
+        <div onClick={onInteract} className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden cursor-pointer">
             {/* Background Hearts - Gentle Float */}
             {hearts.map((heart) => (
                 <motion.div
