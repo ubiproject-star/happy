@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';

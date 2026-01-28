@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import logo from '../assets/happi-logo.png';
 
@@ -10,96 +10,72 @@ export default function Splash({ onComplete }) {
         return () => clearTimeout(timer);
     }, [onComplete]);
 
-    // Colors for hearts: Vibrant & Premium
-    const colors = [
-        'text-red-600', 'text-pink-600', 'text-purple-600',
-        'text-rose-500', 'text-fuchsia-600', 'text-orange-500',
-        'text-indigo-500', 'text-violet-600'
-    ];
-
-    // Denser, faster, multi-colored hearts
-    const hearts = Array.from({ length: 80 }).map((_, i) => ({
+    // Simplified hearts: Pale Red only
+    // Gentle floating animation (hovering), not flying up.
+    const hearts = React.useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
         id: i,
-        // Spread evenly across the width (0% to 100%)
         left: Math.random() * 100,
-        y: Math.random() * 100 + 100,
-        // Even Larger hearts: 3rem to 8rem base (Previously 1.5 to 2.5)
-        scale: Math.random() * 2.5 + 1.5,
-        duration: Math.random() * 3 + 2,
-        delay: Math.random() * 2,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        // Removing rotation for straight upward float
-    }));
+        y: Math.random() * 100, // Position everywhere
+        scale: Math.random() * 1.5 + 0.8,
+        duration: Math.random() * 3 + 3, // Slow gentle float
+        delay: Math.random() * 2
+    })), []);
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
-            {/* Background Hearts */}
+            {/* Background Hearts - Gentle Float */}
             {hearts.map((heart) => (
                 <motion.div
                     key={heart.id}
-                    // Use 'left' for positioning to cover full screen width
                     style={{
                         left: `${heart.left}%`,
+                        top: `${heart.y}%`,
                         fontSize: `${heart.scale}rem`
                     }}
-                    initial={{ opacity: 0, y: "110vh" }}
                     animate={{
-                        opacity: [0, 1, 1, 0], // Fully visible (1) for most of the flight
-                        y: "-20vh",
-                        // Removed rotation
+                        y: [0, -20, 0], // Gentle up and down hover
+                        opacity: [0.1, 0.3, 0.1] // Subtle fade (silik)
                     }}
                     transition={{
                         duration: heart.duration,
                         repeat: Infinity,
-                        ease: "easeOut",
+                        ease: "easeInOut",
                         delay: heart.delay
                     }}
-                    className={`absolute ${heart.color} drop-shadow-md`}
+                    className="absolute text-red-500 pointer-events-none"
                 >
                     ♥
                 </motion.div>
             ))}
 
-            {/* Main Logo Animation w/ Premium Reveal */}
+            {/* Main Logo Animation - Clean & Pure Movement */}
             <motion.div
-                initial={{ scale: 0.8, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{
-                    duration: 1.2,
-                    ease: [0.22, 1, 0.36, 1] // Custom refined easing (cubic-bezier)
-                }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
                 className="relative z-10 flex flex-col items-center"
             >
-                {/* Glow Effect */}
-                <motion.div
-                    className="absolute inset-0 bg-pink-500 rounded-full blur-3xl opacity-20"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                />
-
                 <motion.img
                     src={logo}
                     alt="Happi Logo"
-                    className="w-64 h-auto mb-12 drop-shadow-2xl"
+                    className="w-56 h-auto mb-12" // Removed drop-shadows entirely
                     animate={{
-                        y: [0, -8, 0],
-                        // Removed colored reflections as requested
-                        filter: [
-                            "drop-shadow(0 10px 10px rgba(0,0,0,0.1))",
-                            "drop-shadow(0 20px 20px rgba(0,0,0,0.2))",
-                            "drop-shadow(0 10px 10px rgba(0,0,0,0.1))"
-                        ]
+                        y: [0, -10, 0], // Only movement
+                        scale: [1, 1.02, 1] // Subtle breathing
                     }}
                     transition={{
-                        duration: 3.5,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
                 />
 
-                {/* Rotating Spinner */}
+                {/* Rotating Spinner - Matching Logo Color */}
                 <motion.div
-                    className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent"
+                    // Using text-red-500/primary directly via style or class to ensure exact match if needed, 
+                    // but border-primary is defined as brand color.
+                    // Assuming logo is reddish, ensuring spinner is specific red.
+                    className="w-8 h-8 rounded-full border-4 border-red-500 border-t-transparent"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 />

@@ -11,10 +11,6 @@ export default function Swipe() {
     const [loading, setLoading] = useState(true);
     const { user: tgUser } = useTelegram();
 
-    useEffect(() => {
-        fetchUsers();
-    }, [tgUser]);
-
     const fetchUsers = async () => {
         try {
             // In a real app, we would filter out users already swiped
@@ -33,6 +29,10 @@ export default function Swipe() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchUsers();
+    }, [tgUser]);
 
     const handleSwipe = async (direction, swipedUser) => {
         // Remove user from stack locally

@@ -17,6 +17,33 @@ export default function Chat() {
     const myId = tgUser?.id?.toString() || 'user_m_1';
 
     useEffect(() => {
+        const fetchChatDetails = async () => {
+            const { data: match } = await supabase
+                .from('matches')
+                .select(`
+                *,
+                user1:user1_id(*),
+                user2:user2_id(*)
+            `)
+                .eq('id', matchId)
+                .single();
+
+            if (match) {
+                const processedUser = match.user1.id === myId ? match.user2 : match.user1;
+                setOtherUser(processedUser);
+            }
+        };
+
+        const fetchMessages = async () => {
+            const { data } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('match_id', matchId)
+                .order('created_at', { ascending: true });
+
+            setMessages(data || []);
+        };
+
         fetchChatDetails();
         fetchMessages();
 
@@ -36,38 +63,7 @@ export default function Chat() {
         return () => {
             subscription.unsubscribe();
         };
-    }, [matchId]);
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    const fetchChatDetails = async () => {
-        const { data: match } = await supabase
-            .from('matches')
-            .select(`
-            *,
-            user1:user1_id(*),
-            user2:user2_id(*)
-        `)
-            .eq('id', matchId)
-            .single();
-
-        if (match) {
-            const processedUser = match.user1.id === myId ? match.user2 : match.user1;
-            setOtherUser(processedUser);
-        }
-    };
-
-    const fetchMessages = async () => {
-        const { data } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('match_id', matchId)
-            .order('created_at', { ascending: true });
-
-        setMessages(data || []);
-    };
+    }, [matchId, myId]);
 
     const handleSend = async () => {
         if (!newMessage.trim()) return;

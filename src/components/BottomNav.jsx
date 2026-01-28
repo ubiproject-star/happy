@@ -8,7 +8,7 @@ export default function BottomNav() {
 
     const navItems = [
         { path: '/profile', icon: User, label: 'Profile' },
-        { path: '/swipe', icon: Flame, label: 'Discover' }, // Main swipe page
+        { path: '/', icon: Flame, label: 'Discover' }, // Main Face UI page
         { path: '/matches', icon: Heart, label: 'Matches' },
         // Chat is usually accessed via matches, but for nav we can have a list
     ];

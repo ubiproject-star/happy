@@ -1,38 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import { Camera, Save } from 'lucide-react';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
-    const [profile, setProfile] = useState({
-        first_name: '',
-        bio: '',
-        looking_for: 'all',
-        photo_url: '',
-    });
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
+    const [profile, setProfile] = useState(() => {
         if (tgUser) {
-            // Fetch or init profile
-            // For demo, we just rely on local state or fake fetch
-            setProfile(prev => ({
-                ...prev,
+            return {
                 first_name: tgUser.first_name,
+                bio: '',
+                looking_for: 'all',
                 photo_url: tgUser.photo_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
-            }));
+            };
         } else {
-            // Fallback dev mode
-            setProfile({
+            return {
                 first_name: 'Demo User',
                 bio: 'I love coding and coffee.',
                 looking_for: 'female',
                 photo_url: 'https://randomuser.me/api/portraits/men/99.jpg'
-            });
+            };
         }
-    }, [tgUser]);
+    });
+    const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
         setLoading(true);

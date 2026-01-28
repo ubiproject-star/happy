@@ -10,10 +10,6 @@ export default function Matches() {
     const [loading, setLoading] = useState(true);
     const { user: tgUser } = useTelegram();
 
-    useEffect(() => {
-        fetchMatches();
-    }, [tgUser]);
-
     const fetchMatches = async () => {
         try {
             const myId = tgUser?.id?.toString() || 'user_m_1';
@@ -46,6 +42,10 @@ export default function Matches() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchMatches();
+    }, [tgUser]);
 
     if (loading) {
         return (
