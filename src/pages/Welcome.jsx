@@ -176,23 +176,45 @@ export default function Welcome() {
                 <div role="presentation" className="absolute top-1/2 -right-20 w-80 h-80 bg-red-500/10 rounded-full blur-[100px]" />
 
                 {/* Header Section */}
-                <header className="flex justify-between items-center relative z-10 mb-2">
+                <header className="flex justify-between items-center relative z-10 mb-2 px-2">
+                    {/* Left: Back Button (Preserved) */}
                     <button
                         onClick={() => navigate(-1)}
                         className="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors"
                         aria-label="Go back"
                     >
                         <ChevronLeft size={24} />
-                        <span className="font-medium">Back</span>
                     </button>
 
-                    <div className="text-center">
-                        <h1 className="text-lg font-bold tracking-wide">HAPPI</h1>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Futuristic Bot</p>
+                    {/* Center: Arrowed Heart Animation */}
+                    <div className="flex flex-col items-center justify-center">
+                        <motion.div
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                            className="relative"
+                        >
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 fill-red-500/20 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                {/* Arrow (Simple Representation) */}
+                                <path d="m2 2 20 20" className="stroke-white/80" strokeWidth="1.5" />
+                                <path d="m17 22 5-5" className="stroke-white/80" strokeWidth="1.5" />
+                                <path d="m2 7 5 5" className="stroke-white/80" strokeWidth="1.5" />
+                            </svg>
+                        </motion.div>
                     </div>
 
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center font-bold text-xl shadow-lg ring-1 ring-white/10">
-                        H
+                    {/* Right: User Profile & Name */}
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg">
+                        <span className="text-xs font-bold text-white max-w-[80px] truncate">
+                            {user?.first_name || 'Guest'}
+                        </span>
+                        <div className="w-8 h-8 rounded-full border border-purple-500 overflow-hidden">
+                            <img
+                                src={user?.photo_url || "https://randomuser.me/api/portraits/lego/1.jpg"}
+                                alt="Me"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
                     </div>
                 </header>
 

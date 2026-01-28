@@ -7,10 +7,8 @@ export default function BottomNav() {
     const location = useLocation();
 
     const navItems = [
-        { path: '/profile', icon: User, label: 'Profile' },
-        { path: '/', icon: Flame, label: 'Discover' }, // Main Face UI page
-        { path: '/matches', icon: Heart, label: 'Matches' },
-        // Chat is usually accessed via matches, but for nav we can have a list
+        { path: '/', icon: Flame, label: 'Discover' }, // Left
+        { path: '/profile', icon: User, label: 'Profile' }, // Right
     ];
 
     return (

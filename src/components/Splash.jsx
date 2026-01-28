@@ -12,15 +12,19 @@ export default function Splash({ onComplete }) {
 
     // Simplified hearts: Pale Red only
     // Gentle floating animation (hovering), not flying up.
-    // eslint-disable-next-line react-hooks/purity
-    const hearts = React.useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        y: Math.random() * 100, // Position everywhere
-        scale: Math.random() * 1.5 + 0.8,
-        duration: Math.random() * 3 + 3, // Slow gentle float
-        delay: Math.random() * 2
-    })), []);
+    const [hearts, setHearts] = React.useState([]);
+
+    useEffect(() => {
+        const generatedHearts = Array.from({ length: 25 }).map((_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            y: Math.random() * 100,
+            scale: Math.random() * 1.5 + 0.8,
+            duration: Math.random() * 3 + 3,
+            delay: Math.random() * 2
+        }));
+        setHearts(generatedHearts);
+    }, []);
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white overflow-hidden">
