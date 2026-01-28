@@ -11,12 +11,13 @@ export default function Splash({ onComplete }) {
     }, [onComplete]);
 
     // Floating hearts background animation
-    const hearts = Array.from({ length: 15 }).map((_, i) => ({
+    const hearts = Array.from({ length: 40 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100, // random position %
-        y: Math.random() * 100,
-        scale: Math.random() * 0.5 + 0.5,
-        duration: Math.random() * 2 + 3,
+        y: Math.random() * 100 + 100, // Start slightly below/off screen
+        scale: Math.random() * 0.8 + 0.5,
+        duration: Math.random() * 1.5 + 2, // Faster: 2-3.5s
+        delay: Math.random() * 0.5
     }));
 
     return (
@@ -25,18 +26,19 @@ export default function Splash({ onComplete }) {
             {hearts.map((heart) => (
                 <motion.div
                     key={heart.id}
-                    initial={{ opacity: 0, y: `${heart.y}%`, x: `${heart.x}vw` }}
+                    initial={{ opacity: 0, y: "110vh", x: `${heart.x}vw` }}
                     animate={{
-                        opacity: [0, 0.2, 0],
-                        y: [`${heart.y}%`, `${heart.y - 20}%`]
+                        opacity: [0, 0.8, 0],
+                        y: "-10vh"
                     }}
                     transition={{
                         duration: heart.duration,
                         repeat: Infinity,
-                        ease: "easeInOut"
+                        ease: "linear",
+                        delay: heart.delay
                     }}
-                    className="absolute text-pink-200 pointer-events-none"
-                    style={{ fontSize: `${heart.scale * 2}rem` }}
+                    className="absolute text-pink-500/70 pointer-events-none"
+                    style={{ fontSize: `${heart.scale * 3}rem` }}
                 >
                     ♥
                 </motion.div>
