@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Welcome from './pages/Welcome';
 import Profile from './pages/Profile';
 import Swipe from './pages/Swipe';
 import Matches from './pages/Matches';
 import Chat from './pages/Chat';
+import Splash from './components/Splash';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <Splash onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
