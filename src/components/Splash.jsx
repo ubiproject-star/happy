@@ -23,12 +23,12 @@ export default function Splash({ onComplete }) {
         // Spread evenly across the width (0% to 100%)
         left: Math.random() * 100,
         y: Math.random() * 100 + 100,
-        // Larger hearts: 2rem to 5rem base
-        scale: Math.random() * 1.5 + 1.0,
+        // Even Larger hearts: 3rem to 8rem base (Previously 1.5 to 2.5)
+        scale: Math.random() * 2.5 + 1.5,
         duration: Math.random() * 3 + 2,
         delay: Math.random() * 2,
         color: colors[Math.floor(Math.random() * colors.length)],
-        rotate: Math.random() * 360
+        // Removing rotation for straight upward float
     }));
 
     return (
@@ -42,11 +42,11 @@ export default function Splash({ onComplete }) {
                         left: `${heart.left}%`,
                         fontSize: `${heart.scale}rem`
                     }}
-                    initial={{ opacity: 0, y: "110vh", rotate: heart.rotate }}
+                    initial={{ opacity: 0, y: "110vh" }}
                     animate={{
                         opacity: [0, 1, 1, 0], // Fully visible (1) for most of the flight
                         y: "-20vh",
-                        rotate: heart.rotate + 180
+                        // Removed rotation
                     }}
                     transition={{
                         duration: heart.duration,
@@ -62,33 +62,36 @@ export default function Splash({ onComplete }) {
 
             {/* Main Logo Animation w/ Premium Reveal */}
             <motion.div
-                initial={{ scale: 0.5, opacity: 0, y: 50 }}
+                initial={{ scale: 0.8, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                    duration: 1.5
+                    duration: 1.2,
+                    ease: [0.22, 1, 0.36, 1] // Custom refined easing (cubic-bezier)
                 }}
                 className="relative z-10 flex flex-col items-center"
             >
                 {/* Glow Effect */}
                 <motion.div
-                    className="absolute inset-0 bg-pink-400 rounded-full blur-3xl opacity-20"
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
-                    transition={{ duration: 3, repeat: Infinity }}
+                    className="absolute inset-0 bg-pink-500 rounded-full blur-3xl opacity-20"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />
 
                 <motion.img
                     src={logo}
                     alt="Happi Logo"
-                    className="w-56 h-auto mb-10 drop-shadow-2xl"
+                    className="w-64 h-auto mb-12 drop-shadow-2xl"
                     animate={{
-                        y: [0, -10, 0],
-                        filter: ["drop-shadow(0 10px 10px rgba(255,100,100,0.2))", "drop-shadow(0 25px 25px rgba(255,100,100,0.4))", "drop-shadow(0 10px 10px rgba(255,100,100,0.2))"]
+                        y: [0, -8, 0],
+                        // Removed colored reflections as requested
+                        filter: [
+                            "drop-shadow(0 10px 10px rgba(0,0,0,0.1))",
+                            "drop-shadow(0 20px 20px rgba(0,0,0,0.2))",
+                            "drop-shadow(0 10px 10px rgba(0,0,0,0.1))"
+                        ]
                     }}
                     transition={{
-                        duration: 3,
+                        duration: 3.5,
                         repeat: Infinity,
                         ease: "easeInOut"
                     }}
