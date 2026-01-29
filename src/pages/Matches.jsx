@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import { Link } from 'react-router-dom';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 
 export default function Matches() {
     const [matches, setMatches] = useState([]);
@@ -44,6 +44,28 @@ export default function Matches() {
         }
     };
 
+    const handleDelete = async (e, matchId) => {
+        e.preventDefault();
+        e.stopPropagation(); // Double safety
+
+        // Optimistic update
+        setMatches(prev => prev.filter(m => m.match_id !== matchId));
+
+        try {
+            const { error } = await supabase
+                .from('matches')
+                .delete()
+                .eq('id', matchId);
+
+            if (error) {
+                console.error('Error deleting match:', error);
+                fetchMatches(); // Revert on error
+            }
+        } catch (err) {
+            console.error('Delete failed:', err);
+        }
+    };
+
     useEffect(() => {
         fetchMatches();
     }, [tgUser]);
@@ -73,8 +95,7 @@ export default function Matches() {
 
     // Prepare grid items: Real matches followed by empty "void" slots to fill the "3x1000" concept
     // Render enough placeholders to make the grid look dense and infinite
-    const totalSlots = 300; // Enough to scroll significantly, giving the "infinite" feel
-    // If specific request was 1000 rows, that's 3000. 300 is a safe compromise for performance vs visual.
+    const totalSlots = 300;
 
     return (
         <Layout>
@@ -115,6 +136,14 @@ export default function Matches() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Delete Button (Red X) */}
+                            <button
+                                onClick={(e) => handleDelete(e, match_id)}
+                                className="absolute -top-1 -right-1 z-20 p-1 bg-red-600 text-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                            >
+                                <X size={12} strokeWidth={3} />
+                            </button>
                         </Link>
                     ))}
 
