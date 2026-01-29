@@ -21,9 +21,9 @@ export default function Profile() {
 
         return {
             ...base,
-            gender: 'Erkek',
-            orientation: 'Kadın',
-            region: 'Avrupa',
+            gender: 'Male',
+            orientation: 'Female',
+            region: 'Europe',
             birth_year: 2000
         };
     });
@@ -31,9 +31,9 @@ export default function Profile() {
     const [loading, setLoading] = useState(false);
 
     // Options as requested
-    const GENDER_OPTIONS = ['Erkek', 'Kadın', 'Gay', 'Lezbiyen'];
-    const ORIENTATION_OPTIONS = ['Erkek', 'Kadın', 'Gay', 'Lezbiyen'];
-    const REGION_OPTIONS = ['Kuzey Amerika', 'Asya', 'Avrupa', 'Afrika', 'Orta Doğu', 'Güney Amerika'];
+    const GENDER_OPTIONS = ['Male', 'Female', 'Gay', 'Lesbian'];
+    const ORIENTATION_OPTIONS = ['Male', 'Female', 'Gay', 'Lesbian'];
+    const REGION_OPTIONS = ['North America', 'Asia', 'Europe', 'Africa', 'Middle East', 'South America'];
 
     const handleSave = async () => {
         setLoading(true);
