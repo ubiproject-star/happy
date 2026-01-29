@@ -10,7 +10,7 @@ export default function BottomNav() {
     // Order: Profile (Left) - Discover (Center) - Matches (Right)
     const navItems = [
         { path: '/profile', icon: User, label: 'Profile' },
-        { path: '/swipe', icon: Flame, label: 'Discover', isCenter: true }, // Changed path to /swipe based on App.jsx
+        { path: '/', icon: Flame, label: 'Discover', isCenter: true },
         { path: '/matches', icon: MessageCircle, label: 'Matches' },
     ];
 
