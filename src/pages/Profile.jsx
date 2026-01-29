@@ -21,7 +21,7 @@ export default function Profile() {
 
         return {
             ...base,
-            gender: 'Male',
+            gender: 'Man',
             orientation: 'Female',
             region: 'Europe',
             birth_year: 2000
@@ -31,8 +31,8 @@ export default function Profile() {
     const [loading, setLoading] = useState(false);
 
     // Options as requested
-    const GENDER_OPTIONS = ['Male', 'Female', 'Gay', 'Lesbian'];
-    const ORIENTATION_OPTIONS = ['Male', 'Female', 'Gay', 'Lesbian'];
+    const GENDER_OPTIONS = ['Man', 'Woman', 'Trans man', 'Trans woman'];
+    const ORIENTATION_OPTIONS = ['Male', 'Female', 'Lesbian', 'Gay', 'Bisexual'];
     const REGION_OPTIONS = ['North America', 'Asia', 'Europe', 'Africa', 'Middle East', 'South America'];
 
     const handleSave = async () => {
