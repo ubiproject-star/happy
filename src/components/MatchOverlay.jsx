@@ -1,7 +1,48 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Heart, MessageCircle } from 'lucide-react';
+import { MessageCircle, X } from 'lucide-react';
+
+// Reusing the Crystal aesthetic, but circular for avatars
+const CrystalCircle = ({ children, color = "blue", delay = 0 }) => (
+    <div className="relative group">
+        {/* Outer Glow Ring */}
+        <motion.div
+            initial={{ scale: 0, rotation: 0 }}
+            animate={{ scale: 1, rotation: 180 }}
+            transition={{
+                type: "spring",
+                stiffness: 60,
+                damping: 20,
+                delay: delay
+            }}
+            className={`absolute -inset-1 rounded-full bg-gradient-to-tr from-${color}-500 to-transparent opacity-60 blur-md group-hover:opacity-100 transition-opacity duration-500`}
+        />
+
+        {/* Glass Container */}
+        <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 100, delay: delay + 0.1 }}
+            className={`
+                relative w-32 h-32 md:w-40 md:h-40 rounded-full 
+                border-2 border-white/20 backdrop-blur-xl bg-white/5
+                shadow-[0_0_30px_rgba(0,0,0,0.3)]
+                flex items-center justify-center
+                overflow-hidden
+                z-10
+            `}
+        >
+            {/* Inner Glint */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+
+            {/* The Image */}
+            <div className="w-[92%] h-[92%] rounded-full overflow-hidden border border-white/10 relative z-10">
+                {children}
+            </div>
+        </motion.div>
+    </div>
+);
 
 export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
 
@@ -9,27 +50,18 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
         // Trigger confetti explosion on mount
         const duration = 3000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+        const defaults = { startVelocity: 45, spread: 360, ticks: 100, zIndex: 100, gravity: 0.8 };
+
+        // Initial burst
+        confetti({ ...defaults, particleCount: 100, origin: { x: 0.5, y: 0.5 } });
 
         const interval = setInterval(function () {
             const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
 
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
+            const particleCount = 40 * (timeLeft / duration);
             confetti({ ...defaults, particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } });
-        }, 250);
-
-        // Big initial burst
-        confetti({
-            particleCount: 150,
-            spread: 100,
-            origin: { y: 0.6 },
-            colors: ['#EF4444', '#3B82F6', '#A855F7', '#FFFFFF']
-        });
+        }, 200);
 
         return () => clearInterval(interval);
     }, []);
@@ -39,93 +71,97 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-4 overflow-hidden"
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-xl overflow-hidden font-sans"
         >
-            {/* Background Rays/Effects */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500/20 via-transparent to-transparent animate-pulse" />
-
-            {/* Match Heading */}
-            <motion.div
-                initial={{ scale: 0.5, y: -50 }}
-                animate={{ scale: 1, y: 0 }}
-                transition={{ type: "spring", bounce: 0.5 }}
-                className="relative z-10 text-center mb-12"
-            >
-                <h2 className="text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
-                    IT'S A HAPPI<br />MATCH!
-                </h2>
-            </motion.div>
-
-            {/* Avatars Collision Animation */}
-            <div className="relative flex items-center justify-center h-48 w-full mb-12">
-                {/* Connecting Ring */}
-                <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1.2, opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                    className="absolute w-64 h-64 rounded-full border-4 border-neon-blue shadow-[0_0_30px_#00f3ff] opacity-50"
-                />
-
-                {/* Left User (You) */}
-                <motion.div
-                    initial={{ x: -150, opacity: 0 }}
-                    animate={{ x: -30, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 100, damping: 12, delay: 0.2 }}
-                    className="relative z-10"
-                >
-                    <div className="w-32 h-32 rounded-full border-4 border-red-500 overflow-hidden shadow-[0_0_20px_#ef4444]">
-                        <img src={user1?.photo_url || "https://i.pravatar.cc/300?img=11"} className="w-full h-full object-cover" alt="You" />
-                    </div>
-                </motion.div>
-
-                {/* Right User (Match) */}
-                <motion.div
-                    initial={{ x: 150, opacity: 0 }}
-                    animate={{ x: 30, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 100, damping: 12, delay: 0.2 }}
-                    className="relative z-10"
-                >
-                    <div className="w-32 h-32 rounded-full border-4 border-blue-500 overflow-hidden shadow-[0_0_20px_#3b82f6]">
-                        <img src={user2?.avatar_url || "https://i.pravatar.cc/300?img=5"} className="w-full h-full object-cover" alt="Match" />
-                    </div>
-                </motion.div>
-
-                {/* Lightning/Spark in center */}
-                <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    // Flash in middle when they meet
-                    animate={{ scale: [0, 2, 0], opacity: [0, 1, 0] }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                    className="absolute z-20"
-                >
-                    <div className="w-20 h-20 bg-white rounded-full blur-xl" />
-                </motion.div>
+            {/* Deep Space Background */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,rgba(76,29,149,0.3),transparent_70%)] animate-pulse-slow" />
+                <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.2),transparent_70%)]" />
+                {/* Starfield / Noise */}
+                <div className="absolute inset-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-4 w-full max-w-xs z-20">
-                <motion.button
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    onClick={onChat}
-                    className="w-full py-4 rounded-full bg-gradient-to-r from-red-500 to-purple-600 font-bold text-white text-lg shadow-[0_0_20px_rgba(239,68,68,0.5)] flex items-center justify-center gap-2 hover:scale-105 transition-transform"
-                >
-                    <MessageCircle fill="currentColor" size={24} />
-                    SAY HI
-                </motion.button>
+            {/* Content Container */}
+            <div className="relative z-10 flex flex-col items-center w-full px-4 max-w-md">
 
-                <motion.button
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.9 }}
-                    onClick={onKeepSwiping}
-                    className="w-full py-3 rounded-full bg-white/10 border border-white/20 text-white font-medium backdrop-blur-md hover:bg-white/20 transition-colors"
+                {/* Header Text */}
+                <motion.div
+                    initial={{ y: -50, opacity: 0, scale: 0.8 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
+                    className="text-center mb-12"
                 >
-                    KEEP SWIPING
-                </motion.button>
+                    <h2 className="text-5xl md:text-6xl font-black italic tracking-tighter mix-blend-screen text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-purple-400 drop-shadow-[0_0_25px_rgba(236,72,153,0.6)]">
+                        IT'S A<br />
+                        <span className="bg-gradient-to-r from-neon-blue to-purple-500 bg-clip-text text-transparent">MATCH!</span>
+                    </h2>
+                </motion.div>
+
+                {/* The Twin Planets (Avatars) */}
+                <div className="relative flex items-center justify-center gap-4 mb-16">
+                    {/* Connecting Energy Beam */}
+                    <motion.div
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: "100%", opacity: 1 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        className="absolute h-[2px] bg-gradient-to-r from-transparent via-white/80 to-transparent blur-[1px] z-0"
+                    />
+
+                    {/* Glowing Cosmos behind */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl rounded-full" />
+
+                    <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 10, opacity: 1 }} transition={{ type: "spring", delay: 0.2 }}>
+                        <CrystalCircle color="pink" delay={0.2}>
+                            <img src={user1?.photo_url || "https://i.pravatar.cc/300?img=11"} className="w-full h-full object-cover" alt="Me" />
+                        </CrystalCircle>
+                    </motion.div>
+
+                    <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: -10, opacity: 1 }} transition={{ type: "spring", delay: 0.2 }}>
+                        {/* Overlap effect */}
+                        <CrystalCircle color="blue" delay={0.3}>
+                            <img src={user2?.avatar_url || "https://i.pravatar.cc/300?img=5"} className="w-full h-full object-cover" alt="Match" />
+                        </CrystalCircle>
+                    </motion.div>
+                </div>
+
+                {/* Call to Action */}
+                <div className="flex flex-col gap-4 w-full px-8">
+                    <motion.button
+                        initial={{ y: 50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        onClick={onChat}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="
+                            group relative w-full py-4 rounded-full 
+                            bg-gradient-to-r from-neon-red to-purple-600 
+                            text-white font-bold text-lg tracking-wider
+                            shadow-[0_0_30px_rgba(239,68,68,0.4)]
+                            border border-white/20
+                            overflow-hidden
+                        "
+                    >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                            <MessageCircle className="fill-current" size={22} />
+                            SAY HELLO
+                        </span>
+                        {/* Button Shine Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                    </motion.button>
+
+                    <motion.button
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        onClick={onKeepSwiping}
+                        className="w-full py-3 text-white/50 text-sm font-medium tracking-widest hover:text-white transition-colors uppercase"
+                    >
+                        Keep Swiping
+                    </motion.button>
+                </div>
+
             </div>
-
         </motion.div>
     );
 }
