@@ -81,9 +81,33 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
                         transition={{ duration: 1, ease: "easeOut" }}
                         className="relative z-20 text-center"
                     >
-                        <span className="block text-xl md:text-3xl font-medium tracking-[0.5em] text-pink-300/70 mb-2 md:mb-4 uppercase">
-                            Divine
-                        </span>
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.1, 1],
+                                rotate: [0, 5, -5, 0],
+                                filter: ["drop-shadow(0 0 10px rgba(236,72,153,0.3))", "drop-shadow(0 0 20px rgba(236,72,153,0.6))", "drop-shadow(0 0 10px rgba(236,72,153,0.3))"]
+                            }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="mb-4"
+                        >
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-pink-400">
+                                {/* Intertwined Mars & Venus */}
+                                <motion.path
+                                    d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"
+                                    className="opacity-0"
+                                /> {/* Hidden bounding box fix if needed, but using direct paths below */}
+
+                                {/* Venus (Female) */}
+                                <path d="M10 16a5 5 0 1 0 0-10 5 5 0 0 0 0 10" className="stroke-pink-400" />
+                                <path d="M10 16v4" className="stroke-pink-400" />
+                                <path d="M7 18h6" className="stroke-pink-400" />
+
+                                {/* Mars (Male) - Interlocking */}
+                                <path d="M17.5 7.5a4.5 4.5 0 1 1-4.5 4.5" className="stroke-pink-300" />
+                                <path d="M17.5 7.5l2.5-2.5" className="stroke-pink-300" />
+                                <path d="M17 2h5v5" className="stroke-pink-300" />
+                            </svg>
+                        </motion.div>
                         <span className="block text-5xl md:text-8xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-pink-300 via-rose-500 to-purple-600 drop-shadow-[0_10px_25px_rgba(219,39,119,0.3)]">
                             COSMIC<br />CONNECTION
                         </span>
