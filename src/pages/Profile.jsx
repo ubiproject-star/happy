@@ -24,7 +24,7 @@ export default function Profile() {
             gender: 'Man',
             orientation: 'Female',
             region: 'Europe',
-            birth_year: 2000
+            age: 24
         };
     });
 
@@ -76,9 +76,9 @@ export default function Profile() {
                 {/* Header Title - Matching Discover Style */}
                 <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10">
                     <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent drop-shadow-sm">
-                        IDENTITY
+                        PROFILE
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Configure Your Signals</p>
+                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Configure your profile</p>
                 </div>
 
                 <div className="max-w-md mx-auto space-y-8">
@@ -117,15 +117,14 @@ export default function Profile() {
                             />
                         </div>
 
-                        {/* Birth Year */}
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
-                                <Calendar size={14} /> Birth Year
+                                <Calendar size={14} /> AGE
                             </label>
                             <input
                                 type="number"
-                                value={profile.birth_year}
-                                onChange={(e) => setProfile({ ...profile, birth_year: parseInt(e.target.value) })}
+                                value={profile.age}
+                                onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
                                 className="
                                     w-full p-4 rounded-xl 
                                     bg-[#1a1a1a] border border-white/10 
@@ -232,7 +231,7 @@ export default function Profile() {
                             ) : (
                                 <>
                                     <Sparkles size={18} />
-                                    Update Signal
+                                    UPDATE
                                 </>
                             )}
                         </motion.button>
