@@ -259,23 +259,7 @@ export default function Welcome() {
     const handleChat = async () => {
         playSound('click');
         if (currentMatch) {
-            // Save Match Logic
-            try {
-                const myId = user?.id || 'user_m_1'; // Use fallback or real ID
-                const otherId = currentMatch.id;
-
-                // Check if match exists (optional but good practice, though simple insert is requested)
-                // For now, fire and forget insert. Unique constraint usually handles dupes or we ignore.
-                const { error } = await supabase
-                    .from('matches')
-                    .insert([{ user1_id: myId, user2_id: otherId }]);
-
-                if (error) console.error('Error saving match:', error);
-
-            } catch (err) {
-                console.error('Match save failed:', err);
-            }
-
+            // Navigate only. Saving happens explicitly on the Profile page.
             navigate(`/user/${currentMatch.id}`);
         }
     };

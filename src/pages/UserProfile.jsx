@@ -37,6 +37,26 @@ export default function UserProfile() {
         }
     };
 
+    const checkMatchStatus = async () => {
+        if (!id) return;
+        try {
+            const myId = tgUser?.id?.toString() || 'user_m_1';
+            const targetId = id.toString();
+
+            const { data, error } = await supabase
+                .from('matches')
+                .select('id')
+                .or(`and(user1_id.eq.${myId},user2_id.eq.${targetId}),and(user1_id.eq.${targetId},user2_id.eq.${myId})`)
+                .maybeSingle();
+
+            if (data) {
+                setIsLiked(true);
+            }
+        } catch (error) {
+            console.error('Error checking match status:', error);
+        }
+    };
+
     const matchUser = async () => {
         if (!id) return;
         try {
@@ -69,7 +89,8 @@ export default function UserProfile() {
 
     useEffect(() => {
         matchUser();
-    }, [id]);
+        checkMatchStatus();
+    }, [id, tgUser]);
 
     const ReadOnlyGrid = ({ label, icon: Icon, value }) => (
         <div className="space-y-3">
