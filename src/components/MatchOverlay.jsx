@@ -1,171 +1,208 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, X } from 'lucide-react';
 
 export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
 
-    // Luxury "Fluid Energy" Background Components
-    const FloatingOrb = ({ color, delay, duration, scale }) => (
-        <motion.div
-            animate={{
-                y: [0, -40, 0],
-                x: [0, 30, 0],
-                opacity: [0.4, 0.7, 0.4],
-                scale: [1, 1.2, 1],
-            }}
-            transition={{
-                duration: duration,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: delay,
-            }}
-            className={`absolute rounded-full blur-[80px] mix-blend-screen ${color}`}
-            style={{ width: scale, height: scale }}
-        />
+    // 🎭 "Liquid Metal" Avatar Frame
+    // Uses randomized border-radius to create organic, breathing shapes
+    const LiquidFrame = ({ children, delay = 0 }) => (
+        <div className="relative group w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+            {/* 1. The Glowing Aura (Gold/Violet Bleed) */}
+            <motion.div
+                animate={{
+                    borderRadius: [
+                        "60% 40% 30% 70% / 60% 30% 70% 40%",
+                        "30% 60% 70% 40% / 50% 60% 30% 60%",
+                        "60% 40% 30% 70% / 60% 30% 70% 40%"
+                    ],
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay }}
+                className="absolute inset-[-10px] bg-gradient-to-tr from-yellow-500/40 via-purple-600/30 to-blue-600/30 blur-2xl opacity-60"
+            />
+
+            {/* 2. The Golden Kintsugi Rim (Actual Border) */}
+            <motion.div
+                animate={{
+                    borderRadius: [
+                        "60% 40% 30% 70% / 60% 30% 70% 40%",
+                        "30% 60% 70% 40% / 50% 60% 30% 60%",
+                        "60% 40% 30% 70% / 60% 30% 70% 40%"
+                    ]
+                }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay }}
+                className="absolute inset-0 border-[3px] border-yellow-200/50 backdrop-blur-sm overflow-hidden z-10 shadow-[0_0_50px_rgba(253,224,71,0.2)]"
+            >
+                {/* Image Container */}
+                <motion.div
+                    initial={{ scale: 1.2, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="w-full h-full"
+                >
+                    <div className="absolute inset-0 bg-yellow-900/20 mix-blend-overlay z-10" /> {/* Warm Filter */}
+                    {children}
+                </motion.div>
+
+                {/* 3. Glossy Specular Highlight (The "Wet" Look) */}
+                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-white/40 to-transparent blur-md rounded-full pointer-events-none z-20" />
+            </motion.div>
+        </div>
     );
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-stone-950 overflow-hidden font-sans"
+            exit={{ opacity: 0, transition: { duration: 0.8 } }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0C0A09] text-stone-100 overflow-hidden font-sans"
         >
-            {/* 1. Background: Warm Luxury Depth */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                {/* Base Dark Warmth */}
-                <div className="absolute inset-0 bg-gradient-to-b from-stone-900 via-stone-950 to-black" />
+            {/* ==========================================
+                 LAYER 0: ATMOSPHERE & BACKGROUND
+               ========================================== */}
+            <div className="absolute inset-0 pointer-events-none">
+                {/* Deep Void Gradient */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#292524_0%,#0C0A09_100%)]" />
 
-                {/* Fluid Energy Flow (Gold/Amber/Deep Red) */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-lg">
-                    <FloatingOrb color="bg-yellow-600/30" delay={0} duration={8} scale="300px" />
-                    <FloatingOrb color="bg-amber-700/20" delay={2} duration={10} scale="400px" />
-                    <FloatingOrb color="bg-orange-900/20" delay={1} duration={12} scale="350px" />
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 blur-[100px] rounded-full" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-red-900/20 blur-[100px] rounded-full" />
-                </div>
+                {/* Floating Celestial Dust */}
+                <div className="absolute inset-0 opacity-[0.25] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
 
-                {/* Subtle Grain Texture for "Paper" feel */}
-                <div className="absolute inset-0 opacity-[0.15] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+                {/* Moving Spotlights */}
+                <motion.div
+                    animate={{ x: [-100, 100], y: [-50, 50], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
+                    className="absolute top-0 right-0 w-[800px] h-[800px] bg-purple-900/10 blur-[150px] rounded-full mix-blend-screen"
+                />
+                <motion.div
+                    animate={{ x: [100, -100], y: [50, -50], opacity: [0.2, 0.5, 0.2] }}
+                    transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
+                    className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-yellow-900/10 blur-[150px] rounded-full mix-blend-screen"
+                />
             </div>
 
-            {/* 2. Main Content */}
-            <div className="relative z-10 flex flex-col items-center w-full px-6 max-w-md">
+            {/* ==========================================
+                 LAYER 1: THE CONNECTOR (GOLDEN THREAD)
+               ========================================== */}
+            {/* Visually creates a "Tension" line between the two avatars */}
+            <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] pointer-events-none z-0 opacity-50 overflow-visible">
+                <defs>
+                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="transparent" />
+                        <stop offset="50%" stopColor="#FDE047" /> {/* Yellow-300 */}
+                        <stop offset="100%" stopColor="transparent" />
+                    </linearGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                        <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+                </defs>
+                <motion.path
+                    d="M 50,100 C 150,100 150,50 300,100 C 450,150 450,100 550,100" // S-curve
+                    fill="none"
+                    stroke="url(#goldGradient)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    filter="url(#glow)"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+                />
+            </svg>
 
-                {/* Header Typography: Gold Foil Effect */}
-                <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
-                    className="text-center mb-12 relative"
-                >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.5, duration: 1 }}
-                        className="absolute inset-0 bg-yellow-500/20 blur-3xl"
-                    />
 
-                    <h2 className="relative flex flex-col items-center">
-                        <span className="text-xl md:text-2xl font-medium tracking-[0.5em] text-stone-400 mb-2 uppercase">It's a</span>
-                        <span className="text-5xl md:text-7xl font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-yellow-300 to-yellow-600 drop-shadow-2xl">
-                            Match
+            {/* ==========================================
+                 LAYER 2: MAIN COMPOSITION
+               ========================================== */}
+            <div className="relative z-10 w-full h-full flex flex-col justify-between py-12 md:py-20 px-6">
+
+                {/* SECTION: TYPOGRAPHY (Top) */}
+                <div className="flex-1 flex flex-col items-center justify-center relative">
+                    <motion.h2
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                        className="relative z-20 text-center mix-blend-hard-light"
+                    >
+                        <span className="block text-2xl md:text-3xl font-light tracking-[0.8em] text-stone-400 mb-4 uppercase">
+                            Cosmic
                         </span>
-                    </h2>
+                        <span className="block text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-500 to-amber-700 drop-shadow-[0_20px_50px_rgba(234,179,8,0.2)]">
+                            CONNECTION
+                        </span>
+                    </motion.h2>
 
-                    <motion.div
-                        animate={{ rotate: 360, opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        className="absolute -top-6 -right-4 text-yellow-200"
-                    >
-                        <Sparkles size={24} />
-                    </motion.div>
-                </motion.div>
+                    {/* SECTION: AVATARS (Middle) */}
+                    <div className="flex items-center justify-center gap-4 md:gap-16 mt-12 w-full max-w-4xl relative z-10">
+                        {/* Avatar 1: Left */}
+                        <motion.div
+                            initial={{ x: -100, opacity: 0, rotate: -15 }}
+                            animate={{ x: 0, opacity: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.2 }}
+                        >
+                            <LiquidFrame delay={0}>
+                                <img src={user1?.photo_url || "https://i.pravatar.cc/300?img=11"} className="w-full h-full object-cover" alt="You" />
+                            </LiquidFrame>
+                        </motion.div>
 
-                {/* Avatars: Connected by Gold Energy */}
-                <div className="relative flex items-center justify-center mb-16 w-full h-40">
-
-                    {/* Energy Beam */}
-                    <motion.div
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: "80%", opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
-                        className="absolute h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent blur-[2px] z-0"
-                    />
-
-                    {/* Avatar 1 */}
-                    <motion.div
-                        initial={{ x: -50, opacity: 0 }}
-                        animate={{ x: -20, opacity: 1 }}
-                        transition={{ delay: 0.4, type: "spring", stiffness: 50 }}
-                        className="relative z-10"
-                    >
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-[2px] bg-gradient-to-br from-yellow-300 via-yellow-600 to-yellow-900 shadow-[0_0_30px_rgba(234,179,8,0.3)]">
-                            <div className="w-full h-full rounded-full border-4 border-stone-900 overflow-hidden">
-                                <img src={user1?.photo_url || "https://i.pravatar.cc/300?img=11"} className="w-full h-full object-cover grayscale-[20%]" alt="You" />
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Avatar 2 */}
-                    <motion.div
-                        initial={{ x: 50, opacity: 0 }}
-                        animate={{ x: 20, opacity: 1 }}
-                        transition={{ delay: 0.5, type: "spring", stiffness: 50 }}
-                        className="relative z-10"
-                    >
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-[2px] bg-gradient-to-tl from-yellow-300 via-yellow-600 to-yellow-900 shadow-[0_0_30px_rgba(234,179,8,0.3)]">
-                            <div className="w-full h-full rounded-full border-4 border-stone-900 overflow-hidden">
-                                <img src={user2?.avatar_url || "https://i.pravatar.cc/300?img=5"} className="w-full h-full object-cover grayscale-[20%]" alt="Them" />
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Central Spark */}
-                    <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: [0, 1.5, 1], opacity: 1 }}
-                        transition={{ delay: 0.8, duration: 0.5 }}
-                        className="absolute z-20 bg-yellow-100 rounded-full p-2 shadow-[0_0_20px_rgba(255,255,255,0.8)]"
-                    >
-                        <Sparkles className="text-yellow-600 w-6 h-6" />
-                    </motion.div>
+                        {/* Avatar 2: Right */}
+                        <motion.div
+                            initial={{ x: 100, opacity: 0, rotate: 15 }}
+                            animate={{ x: 0, opacity: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.4 }}
+                        >
+                            <LiquidFrame delay={2}>
+                                <img src={user2?.avatar_url || "https://i.pravatar.cc/300?img=5"} className="w-full h-full object-cover" alt="Them" />
+                            </LiquidFrame>
+                        </motion.div>
+                    </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-col gap-6 w-full px-8">
+                {/* SECTION: INTERACTIONS (Bottom) */}
+                <div className="flex flex-col items-center gap-8 w-full max-w-sm mx-auto relative z-20 mt-8">
+
+                    {/* Primary Action: Glass & Light */}
                     <motion.button
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.8 }}
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 1.2, duration: 0.8 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={onChat}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
                         className="
-                            group relative w-full py-4 rounded-xl overflow-hidden
-                            bg-gradient-to-r from-yellow-600 to-yellow-800
-                            border border-yellow-500/30
-                            shadow-[0_10px_30px_rgba(0,0,0,0.5)]
+                            group relative w-full py-5 rounded-sm
+                            bg-gradient-to-r from-stone-800 to-stone-900
+                            border border-stone-700
+                            hover:border-yellow-500/50
+                            transition-all duration-500
+                            overflow-visible
                         "
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                        <span className="relative flex items-center justify-center gap-3 text-stone-950 font-bold tracking-widest text-sm uppercase">
-                            <MessageCircle size={18} className="text-stone-900" />
-                            Start Conversation
+                        {/* Button Glow Behind */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-yellow-600 to-purple-600 opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 rounded-sm" />
+
+                        <span className="relative z-10 flex items-center justify-center gap-4 text-yellow-100 font-serif text-xl tracking-widest uppercase">
+                            <MessageCircle size={20} className="text-yellow-500" />
+                            Initiate
                         </span>
                     </motion.button>
 
+                    {/* Secondary Action: Minimalist */}
                     <motion.button
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 1.0 }}
+                        transition={{ delay: 1.5 }}
                         onClick={onKeepSwiping}
-                        className="text-stone-500 text-xs tracking-[0.3em] uppercase hover:text-yellow-500 transition-colors"
+                        className="relative group text-xs text-stone-500 uppercase tracking-[0.4em] font-medium"
                     >
-                        Keep Browsing
+                        <span className="group-hover:text-stone-300 transition-colors duration-300">Dismiss & Continue</span>
+                        <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-stone-500 group-hover:w-full transition-all duration-500 ease-out" />
                     </motion.button>
                 </div>
-
             </div>
         </motion.div>
     );
