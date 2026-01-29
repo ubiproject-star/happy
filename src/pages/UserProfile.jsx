@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
+import useTelegram from '../hooks/useTelegram';
 import { supabase } from '../lib/supabase';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
@@ -9,8 +10,28 @@ import { User, Heart, Globe, Instagram, Send, Sparkles, ChevronLeft } from 'luci
 export default function UserProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user: tgUser } = useTelegram();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isLiked, setIsLiked] = useState(false);
+
+    const handleLike = async () => {
+        if (!id || isLiked) return;
+
+        try {
+            const myId = tgUser?.id?.toString() || 'user_m_1';
+
+            const { error } = await supabase
+                .from('matches')
+                .insert([{ user1_id: myId, user2_id: id }]);
+
+            if (error) throw error;
+
+            setIsLiked(true);
+        } catch (error) {
+            console.error('Error liking user:', error);
+        }
+    };
 
     const matchUser = async () => {
         if (!id) return;
@@ -122,9 +143,8 @@ export default function UserProfile() {
                 {/* Header Title */}
                 <div className="relative text-center mb-8 glass py-4 rounded-2xl border border-white/10 mx-auto max-w-xs sm:max-w-md mt-2">
                     <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm">
-                        SIGNAL INTERCEPT
+                        Happi Chatting
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Identity Verified</p>
                 </div>
 
                 <div className="max-w-md mx-auto space-y-8">
@@ -148,10 +168,24 @@ export default function UserProfile() {
                         animate={{ y: 0, opacity: 1 }}
                         className="space-y-6 p-6 glass rounded-3xl border border-white/5 shadow-2xl w-full"
                     >
-                        {/* Name */}
-                        <div className="text-center mb-6">
+                        {/* Name & Like Button */}
+                        <div className="text-center mb-6 flex flex-col items-center gap-4">
                             <h2 className="text-3xl font-black italic text-white tracking-tight">{profile.first_name}</h2>
-                            <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{profile.birth_year ? `Born ${profile.birth_year}` : 'Unknown Age'}</p>
+
+                            <button
+                                onClick={handleLike}
+                                disabled={isLiked}
+                                className={`
+                                    flex items-center gap-2 px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs transition-all
+                                    ${isLiked
+                                        ? 'bg-green-500/20 text-green-400 border border-green-500/50 cursor-default'
+                                        : 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg hover:scale-105 active:scale-95 border border-white/10'
+                                    }
+                                `}
+                            >
+                                <Heart size={16} className={isLiked ? "fill-current" : ""} />
+                                {isLiked ? 'Connected' : 'Connect'}
+                            </button>
                         </div>
 
                         {/* Variables */}
@@ -162,17 +196,21 @@ export default function UserProfile() {
                                 value={profile.gender}
                             />
                             <ReadOnlyGrid
+                                label="Age"
+                                icon={Sparkles}
+                                value={profile.birth_year ? `${new Date().getFullYear() - profile.birth_year} (${profile.birth_year})` : 'N/A'}
+                            />
+                            <ReadOnlyGrid
                                 label="Interested In"
                                 icon={Heart}
                                 value={profile.orientation}
                             />
+                            <ReadOnlyGrid
+                                label="Region"
+                                icon={Globe}
+                                value={profile.region}
+                            />
                         </div>
-
-                        <ReadOnlyGrid
-                            label="Region"
-                            icon={Globe}
-                            value={profile.region}
-                        />
 
                         {/* Social Links Section */}
                         <div className="space-y-4 pt-6 border-t border-white/5">
