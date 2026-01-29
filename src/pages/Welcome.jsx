@@ -4,105 +4,137 @@ import useTelegram from '../hooks/useTelegram';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { ChevronLeft, Volume2, VolumeX } from 'lucide-react';
 import MatchOverlay from '../components/MatchOverlay';
+import { ChevronLeft, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 
-// --- Sub-Components ---
+// --- Artistic Components ---
 
-const EyeContainer = ({ children, borderColor = "border-blue-500", shadowColor = "shadow-blue-500/50" }) => (
-    <div className={`relative w-36 h-36 rounded-full border-4 ${borderColor} bg-gray-900 overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] ${shadowColor}`}>
-        <div className="absolute inset-0 bg-gradient-to-tr from-black/60 to-transparent z-10 pointer-events-none" />
-        {children}
-        {/* Reflection Glint */}
-        <div className="absolute top-4 right-6 w-3 h-2 bg-white/40 rounded-full blur-[2px] z-20" />
+const CrystalLens = ({ children, borderColor = "border-white/20", glowColor = "shadow-blue-500/20" }) => (
+    <div className={`
+        relative w-36 h-44 rounded-[2.5rem] 
+        bg-gradient-to-br from-white/10 to-transparent 
+        backdrop-blur-xl border border-white/20 
+        overflow-hidden 
+        shadow-[0_0_30px_rgba(0,0,0,0.2)] ${glowColor}
+        group transition-all duration-500 hover:scale-105 hover:border-white/40
+    `}>
+        {/* Prismatic Glint */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+        {/* Inner Content */}
+        <div className="relative w-full h-full p-1.5">
+            <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black/50 relative">
+                {children}
+            </div>
+            {/* Glass Reflection */}
+            <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gradient-to-br from-white/30 to-transparent blur-[8px] z-20 pointer-events-none" />
+        </div>
     </div>
 );
 
 const UserAvatar = ({ url, alt }) => (
-    <img src={url} alt={alt} className="w-full h-full object-cover opacity-90" />
+    <img src={url} alt={alt} className="w-full h-full object-cover opacity-90 transition-opacity hover:opacity-100" />
 );
 
 const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
-    <div className="w-full h-full flex items-center justify-center relative bg-gray-900">
+    <div className="w-full h-full flex items-center justify-center relative bg-black">
         <AnimatePresence mode='wait'>
             {currentMatch ? (
                 <motion.img
                     key={currentMatch.id}
                     src={currentMatch.avatar_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
                     alt="Match"
-                    initial={{ y: -50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 50, opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                    className="w-full h-full object-cover cursor-pointer hover:opacity-100 transition-opacity"
+                    initial={{ scale: 1.2, opacity: 0, filter: 'blur(10px)' }}
+                    animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+                    exit={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
+                    transition={{ duration: 0.15 }}
+                    className="w-full h-full object-cover cursor-pointer hover:brightness-110 transition-all"
                     onClick={onNavigate}
                 />
             ) : (
-                <div className="text-center p-2">
-                    <span className="text-xs text-red-400 font-mono animate-pulse">NO SIGNAL</span>
+                <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50">
+                    <Sparkles size={24} className="text-white/30 animate-pulse" />
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-light">Void</span>
                 </div>
             )}
         </AnimatePresence>
 
-        {/* Slot Scanlines */}
+        {/* Digital Noise Overlay when spinning */}
         {spinning && (
-            <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px] z-20 pointer-events-none opacity-50" />
+            <div className="absolute inset-0 bg-white/5 mix-blend-overlay z-10" />
         )}
     </div>
 );
 
-const NoseButton = ({ spinning, onClick }) => (
-    <div className="relative z-30 group perspective-500">
+const EnergyCore = ({ spinning, onClick }) => (
+    <div className="relative z-30 group flex items-center justify-center">
+        {/* Outer Ring */}
+        <div className={`
+            absolute inset-0 rounded-full border border-white/10 
+            transition-all duration-500
+            ${spinning ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
+        `} />
+
         <motion.button
-            whileTap={{
-                scale: 0.95,
-                translateY: 10,
-                boxShadow: "0px 5px 0px 0px #7f1d1d, 0px 5px 20px rgba(220, 38, 38, 0.4)"
-            }}
+            whileTap={{ scale: 0.9 }}
             onClick={onClick}
             disabled={spinning}
-            aria-label="Find Match"
             className={`
-                relative w-28 h-36 rounded-[4rem] flex items-center justify-center 
-                bg-gradient-to-br from-[#ef4444] to-[#991b1b]
-                border-t border-white/20
-                shadow-[0px_15px_0px_0px_#7f1d1d,0px_20px_40px_rgba(220,38,38,0.5)]
-                transition-transform duration-100
-                ${spinning ? 'brightness-110' : ''}
+                relative w-24 h-24 rounded-full flex items-center justify-center
+                bg-gradient-to-br from-white/10 via-white/5 to-transparent
+                backdrop-blur-md border border-white/20
+                shadow-[0_0_50px_rgba(255,255,255,0.1)]
+                transition-all duration-300
+                group-hover:shadow-[0_0_80px_rgba(255,75,75,0.3)]
+                group-hover:border-red-500/30
             `}
         >
-            <div className="absolute inset-2 rounded-[3.5rem] bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-            <span className="text-5xl font-black text-white drop-shadow-md font-mono tracking-tighter pb-2">
-                {spinning ? '••' : 'GO'}
-            </span>
+            {/* The Core */}
+            <div className={`
+                w-12 h-12 rounded-full 
+                bg-gradient-to-tr from-red-600 to-orange-500
+                shadow-[0_0_30px_rgba(239,68,68,0.6)]
+                transition-all duration-500
+                ${spinning ? 'animate-pulse scale-90 brightness-150' : 'scale-100 group-hover:scale-110'}
+            `} />
+
+            {/* Spinning Orbitals */}
+            {spinning && (
+                <div className="absolute inset-0 border-2 border-t-white/50 border-transparent rounded-full animate-spin duration-700" />
+            )}
         </motion.button>
-        {/* Ambient Glow */}
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-40 h-16 bg-red-600/30 rounded-full blur-2xl -z-10" />
     </div>
 );
 
-const MouthBar = () => (
-    <div className="w-64 h-12 relative mt-8">
-        <svg viewBox="0 0 300 60" className="w-full h-full drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">
-            <motion.path
-                d="M 20 20 Q 150 60 280 20"
-                fill="none"
-                stroke="url(#mouth-gradient)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                initial={{ d: "M 20 20 Q 150 60 280 20" }}
-                animate={{ d: ["M 20 20 Q 150 60 280 20", "M 20 25 Q 150 70 280 25", "M 20 20 Q 150 60 280 20"] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+const SonicWave = ({ spinning }) => (
+    <div className="w-48 h-12 flex items-center justify-center gap-1.5 opacity-60">
+        {[...Array(5)].map((_, i) => (
+            <motion.div
+                key={i}
+                className="w-1 bg-gradient-to-t from-transparent via-white/50 to-transparent rounded-full"
+                animate={{
+                    height: spinning ? [10, 32, 10] : 8,
+                    opacity: spinning ? 1 : 0.3
+                }}
+                transition={{
+                    duration: 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.1,
+                    ease: "easeInOut"
+                }}
             />
-            <defs>
-                <linearGradient id="mouth-gradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="50%" stopColor="#d946ef" />
-                    <stop offset="100%" stopColor="#3b82f6" />
-                </linearGradient>
-            </defs>
-        </svg>
+        ))}
+    </div>
+);
+
+const AuroraBackground = () => (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-black">
+        <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_50%_50%,rgba(76,29,149,0.15),transparent_60%)] animate-pulse-slow" />
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.1),transparent_50%)]" />
+        <div className="absolute bottom-0 left-20 w-full h-full bg-[radial-gradient(circle_at_20%_80%,rgba(59,130,246,0.1),transparent_50%)]" />
+        {/* Grain */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
     </div>
 );
 
@@ -121,7 +153,6 @@ export default function Welcome() {
     // Initial Data Fetch
     useEffect(() => {
         const fetchUsers = async () => {
-            // In real app: fetch from DB, filter seen, etc.
             const { data } = await supabase.from('users').select('*').limit(20);
             if (data) {
                 const shuffled = data.sort(() => 0.5 - Math.random());
@@ -132,9 +163,9 @@ export default function Welcome() {
     }, []);
 
     // Provide a way to interact first
-    const handleInteractionStart = () => {
+    const handleInteractionStart = useCallback(() => {
         initAudio();
-    };
+    }, [initAudio]);
 
     const handleSpin = useCallback(() => {
         handleInteractionStart();
@@ -146,9 +177,8 @@ export default function Welcome() {
 
         let spinCount = 0;
         const maxSpins = 15;
-
-        // Sound interval for ticking
         const speed = 100;
+
         const spinInterval = setInterval(() => {
             playSound('spin'); // Tick every spin
 
@@ -165,7 +195,7 @@ export default function Welcome() {
                 setShowMatchOverlay(true);
             }
         }, speed);
-    }, [spinning, matches, playSound, initAudio, handleInteractionStart]);
+    }, [spinning, matches, playSound, handleInteractionStart]);
 
     const handleChat = () => {
         playSound('click');
@@ -181,7 +211,9 @@ export default function Welcome() {
 
     return (
         <Layout>
-            <main onClick={handleInteractionStart} className="flex flex-col h-full bg-[#0f1014] text-white p-4 relative overflow-hidden">
+            <main onClick={handleInteractionStart} className="flex flex-col h-full relative overflow-hidden font-sans">
+                <AuroraBackground />
+
                 {/* Match Overlay */}
                 <AnimatePresence>
                     {showMatchOverlay && currentMatch && (
@@ -194,86 +226,81 @@ export default function Welcome() {
                     )}
                 </AnimatePresence>
 
-                {/* Semantic background blobs */}
-                <div role="presentation" className="absolute -top-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px]" />
-                <div role="presentation" className="absolute top-1/2 -right-20 w-80 h-80 bg-red-500/10 rounded-full blur-[100px]" />
-
                 {/* Header Section */}
-                <header className="flex justify-between items-center relative z-10 mb-6 px-2">
+                <header className="flex justify-between items-center relative z-10 mb-8 px-4 pt-4">
                     {/* Left: Back */}
                     <button
                         onClick={() => navigate(-1)}
-                        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 active:bg-white/10 transition-colors"
-                        aria-label="Go back"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/70 hover:text-white transition-colors"
                     >
-                        <ChevronLeft size={24} />
+                        <ChevronLeft size={20} />
                     </button>
 
-                    {/* Center: Mute Toggle */}
+                    {/* Center: Mute Toggle (Minimal) */}
                     <button
                         onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-transform"
+                        className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-all hover:bg-white/10"
                     >
-                        {muted ? <VolumeX size={18} className="text-gray-400" /> : <Volume2 size={18} className="text-neon-blue" />}
-                        <span className="text-xs font-medium text-gray-300">{muted ? 'OFF' : 'ON'}</span>
+                        {muted ? <VolumeX size={14} className="text-white/40" /> : <Volume2 size={14} className="text-white" />}
+                        <span className="text-[10px] font-medium tracking-widest uppercase text-white/50">{muted ? 'Muted' : 'Sound'}</span>
                     </button>
 
-                    {/* Right: Profile */}
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 shadow-lg">
-                        <span className="text-xs font-bold text-white max-w-[80px] truncate">
-                            {user?.first_name || 'Guest'}
-                        </span>
-                        <div className="w-8 h-8 rounded-full border border-purple-500 overflow-hidden">
-                            <img
-                                src={user?.photo_url || "https://randomuser.me/api/portraits/lego/1.jpg"}
-                                alt="Me"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                    {/* Right: Me (Minimal) */}
+                    <div onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full border border-white/20 overflow-hidden cursor-pointer shadow-lg">
+                        <img
+                            src={user?.photo_url || "https://randomuser.me/api/portraits/lego/1.jpg"}
+                            alt="Me"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
                 </header>
 
-                {/* Face UI Section */}
-                <section className="flex-1 flex flex-col items-center justify-center relative z-10 mb-20" aria-label="Interactive Face Interface">
+                {/* The Oracle Interface */}
+                <section className="flex-1 flex flex-col items-center justify-center relative z-10 -mt-10" aria-label="Digital Oracle">
 
-                    {/* Eyes Row */}
-                    <div className="flex items-center justify-center gap-8 mb-12 w-full max-w-sm">
+                    {/* The Eyes: Crystal Lenses */}
+                    <div className="flex items-center justify-center gap-6 mb-16 w-full max-w-md px-4">
 
-                        {/* LEFT EYE */}
-                        <article className="flex flex-col items-center group">
-                            <EyeContainer borderColor="border-blue-500" shadowColor="shadow-[0_0_40px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_60px_rgba(59,130,246,0.5)] transition-shadow duration-500">
-                                <div onClick={() => navigate('/profile')} className="cursor-pointer w-full h-full">
-                                    <UserAvatar
-                                        url={user?.photo_url || "https://i.pravatar.cc/300?img=11"}
-                                        alt="My Profile"
-                                    />
-                                </div>
-                            </EyeContainer>
-                        </article>
+                        {/* Left Lens: Me */}
+                        <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                            <CrystalLens borderColor="border-blue-400/20" glowColor="group-hover:shadow-blue-500/40">
+                                <UserAvatar
+                                    url={user?.photo_url || "https://i.pravatar.cc/300?img=11"}
+                                    alt="My Profile"
+                                />
+                            </CrystalLens>
+                        </motion.div>
 
-                        {/* RIGHT EYE */}
-                        <article className="flex flex-col items-center group">
-                            <EyeContainer borderColor="border-red-500" shadowColor="shadow-[0_0_40px_rgba(239,68,68,0.3)] group-hover:shadow-[0_0_60px_rgba(239,68,68,0.5)] transition-shadow duration-500">
+                        {/* Right Lens: The Unknown */}
+                        <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                            <CrystalLens borderColor="border-pink-400/20" glowColor="group-hover:shadow-pink-500/40">
                                 <SlotMachine
                                     currentMatch={currentMatch}
                                     spinning={spinning}
                                     onNavigate={() => currentMatch && setShowMatchOverlay(true)}
                                 />
-                            </EyeContainer>
-                        </article>
+                            </CrystalLens>
+                        </motion.div>
 
                     </div>
 
-                    {/* Nose & Mouth */}
+                    {/* The Core: Action & Feedback */}
                     <div className="flex flex-col items-center gap-8">
-                        {/* NOSE: 3D Trigger */}
-                        <NoseButton spinning={spinning} onClick={handleSpin} />
+                        {/* The Trigger */}
+                        <EnergyCore spinning={spinning} onClick={handleSpin} />
 
-                        {/* MOUTH: Animated Visuals */}
-                        <MouthBar />
+                        {/* The Voice */}
+                        <SonicWave spinning={spinning} />
                     </div>
 
                 </section>
+
+                {/* Footer / Status */}
+                <div className="absolute bottom-6 w-full text-center z-10 pointer-events-none">
+                    <span className="text-[9px] uppercase tracking-[0.3em] text-white/20">
+                        {spinning ? 'Searching Quantum Field...' : 'System Ready'}
+                    </span>
+                </div>
 
             </main>
         </Layout>
