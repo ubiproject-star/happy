@@ -127,7 +127,7 @@ export default function Matches() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
-                        YOUR FLOCK
+                        YOUR FAVORITES
                     </h1>
                     <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-2 uppercase">Quantum Entanglements</p>
                 </div>
