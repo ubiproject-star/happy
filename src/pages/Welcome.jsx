@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MatchOverlay from '../components/MatchOverlay';
+import PurchaseModal from '../components/PurchaseModal';
 import { ChevronLeft, Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 
@@ -159,10 +160,28 @@ export default function Welcome() {
     const navigate = useNavigate();
     const { playSound, initAudio, muted, toggleMute } = useSound();
 
+    // --- STATE ---
     const [matches, setMatches] = useState([]);
     const [currentMatch, setCurrentMatch] = useState(null);
     const [spinning, setSpinning] = useState(false);
     const [showMatchOverlay, setShowMatchOverlay] = useState(false);
+
+    // Credits System
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [credits, setCredits] = useState(() => {
+        const saved = localStorage.getItem('searchCredits');
+        return saved !== null ? parseInt(saved, 10) : 3;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('searchCredits', credits);
+    }, [credits]);
+
+    const handlePurchase = (amount) => {
+        setCredits(prev => prev + amount);
+        setShowPurchaseModal(false);
+        playSound('match'); // Success sound
+    };
 
     // Initial Data Fetch
     useEffect(() => {
@@ -183,7 +202,17 @@ export default function Welcome() {
 
     const handleSpin = useCallback(() => {
         handleInteractionStart();
+
+        // CHECK CREDITS
+        if (credits <= 0) {
+            setShowPurchaseModal(true);
+            return;
+        }
+
         if (spinning || matches.length === 0) return;
+
+        // DECREMENT CREDIT
+        setCredits(prev => prev - 1);
 
         setSpinning(true);
         setShowMatchOverlay(false);
@@ -209,7 +238,7 @@ export default function Welcome() {
                 setShowMatchOverlay(true);
             }
         }, speed);
-    }, [spinning, matches, playSound, handleInteractionStart]);
+    }, [spinning, matches, playSound, handleInteractionStart, credits]);
 
     const handleChat = async () => {
         playSound('click');
@@ -257,6 +286,16 @@ export default function Welcome() {
                     )}
                 </AnimatePresence>
 
+                {/* Purchase Modal */}
+                <AnimatePresence>
+                    {showPurchaseModal && (
+                        <PurchaseModal
+                            onClose={() => setShowPurchaseModal(false)}
+                            onPurchase={handlePurchase}
+                        />
+                    )}
+                </AnimatePresence>
+
                 {/* Header Section */}
                 <header className="flex justify-between items-center relative z-10 mb-8 px-4 pt-4">
                     {/* Left: Back */}
@@ -276,14 +315,15 @@ export default function Welcome() {
                         <span className="text-[10px] font-medium tracking-widest uppercase text-white/50">{muted ? 'Muted' : 'Sound'}</span>
                     </button>
 
-                    {/* Right: Me (Minimal) */}
-                    <div onClick={() => navigate('/profile')} className="w-10 h-10 rounded-full border border-white/20 overflow-hidden cursor-pointer shadow-lg">
-                        <img
-                            src={user?.photo_url || "https://randomuser.me/api/portraits/lego/1.jpg"}
-                            alt="Me"
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
+                    {/* Right: Credits Counter */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowPurchaseModal(true); }}
+                        className="h-10 px-4 rounded-xl border border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center cursor-pointer shadow-lg hover:bg-white/10 transition-all active:scale-95"
+                    >
+                        <span className="text-xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                            {credits}
+                        </span>
+                    </button>
                 </header>
 
                 {/* The Oracle Interface */}
