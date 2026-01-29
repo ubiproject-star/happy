@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
-import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe } from 'lucide-react';
+import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send } from 'lucide-react';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
@@ -160,6 +160,57 @@ export default function Profile() {
                             value={profile.region}
                             onChange={(val) => setProfile({ ...profile, region: val })}
                         />
+
+                        {/* Social Links Section */}
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                            <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Social Connections</h3>
+
+                            {/* Instagram */}
+                            <div className="group space-y-2">
+                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#E1306C] uppercase ml-1 drop-shadow-[0_0_5px_rgba(225,48,108,0.5)]">
+                                    <Instagram size={14} /> Instagram
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={profile.instagram_handle || ''}
+                                        onChange={(e) => setProfile({ ...profile, instagram_handle: e.target.value })}
+                                        placeholder="@username"
+                                        className="
+                                            w-full p-4 pl-12 rounded-xl 
+                                            bg-[#1a1a1a] border border-white/10 
+                                            text-white font-medium tracking-wide
+                                            focus:border-[#E1306C] focus:shadow-[0_0_15px_rgba(225,48,108,0.2)]
+                                            outline-none transition-all duration-300 placeholder-gray-600
+                                        "
+                                    />
+                                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#E1306C] transition-colors" size={18} />
+                                </div>
+                            </div>
+
+                            {/* Telegram (Auto-Generated) */}
+                            <div className="group space-y-2">
+                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#0088cc] uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,136,204,0.5)]">
+                                    <Send size={14} /> Telegram
+                                </label>
+                                <div className="relative opacity-80">
+                                    <input
+                                        type="text"
+                                        value={`https://t.me/${tgUser?.username || 'user'}`}
+                                        readOnly
+                                        disabled
+                                        className="
+                                            w-full p-4 pl-12 rounded-xl 
+                                            bg-[#0f0f0f] border border-white/5 
+                                            text-gray-400 font-mono text-sm tracking-wide
+                                            cursor-not-allowed select-none
+                                        "
+                                    />
+                                    <Send className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0088cc]" size={18} />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-600 uppercase tracking-widest border border-gray-800 px-2 py-1 rounded">Auto-Linked</span>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Save Button */}
                         <motion.button
