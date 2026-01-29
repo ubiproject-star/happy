@@ -14,8 +14,9 @@ const PACKAGES = [
         color: 'cyan',
         features: [
             '100 Buttons',
-            'Basic Visibility',
-            'Standard Matching'
+            '2x Visibility',
+            'See Who Liked You',
+            'Priority Support'
         ]
     },
     {
@@ -28,9 +29,10 @@ const PACKAGES = [
         color: 'indigo',
         features: [
             '250 Buttons',
-            '2x Visibility',
-            'See Who Liked You',
-            'Priority Support'
+            'Top Tier Visibility',
+            'Exclusive Profile Badge',
+            'Algorithm Boost',
+            'Direct Messaging'
         ]
     },
     {
