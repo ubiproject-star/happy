@@ -16,13 +16,16 @@ export default function Matches() {
             console.log('My ID:', myId);
 
             // Fetch matches where I am user1 or user2
+            // We select raw IDs to safely identify "me" even if my profile doesn't exist in 'users' table (and thus join fails)
             const { data: matchesData, error } = await supabase
                 .from('matches')
                 .select(`
-                id,
-                user1:user1_id(*),
-                user2:user2_id(*)
-            `)
+                    id,
+                    user1_id,
+                    user2_id,
+                    user1:user1_id(*),
+                    user2:user2_id(*)
+                `)
                 .or(`user1_id.eq.${myId},user2_id.eq.${myId}`)
                 .order('created_at', { ascending: false });
 
@@ -36,15 +39,18 @@ export default function Matches() {
             // Transform data to get the distinct "other" user
             const formattedMatches = matchesData
                 .map(match => {
-                    // Check if users exist to avoid crash
-                    if (!match.user1 || !match.user2) {
-                        console.warn('Match with missing user data:', match);
-                        // If one side is missing but the other isn't, try to salvage (though unlikely in valid Foreign Key)
-                        // For now, return null to filter
+                    // Identify the other user based on raw IDs
+                    // Note: IDs in DB might be numbers or strings, safely compare as strings
+                    const isUser1 = match.user1_id.toString() === myId;
+
+                    const otherUser = isUser1 ? match.user2 : match.user1;
+
+                    // We only strictly NEED the other user's profile to display the card
+                    if (!otherUser) {
+                        console.warn('Match found but partner profile missing:', match);
                         return null;
                     }
 
-                    const otherUser = match.user1.id.toString() === myId ? match.user2 : match.user1;
                     return {
                         match_id: match.id,
                         user: otherUser
