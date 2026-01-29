@@ -20,10 +20,14 @@ export default function UserProfile() {
 
         try {
             const myId = tgUser?.id?.toString() || 'user_m_1';
+            // Ensure ID is passed correctly (Supabase often needs strings for UUIDs or ints depending on schema)
+            const targetId = id.toString();
+
+            console.log(`Attempting match: ${myId} -> ${targetId}`);
 
             const { error } = await supabase
                 .from('matches')
-                .insert([{ user1_id: myId, user2_id: id }]);
+                .insert([{ user1_id: myId, user2_id: targetId }]);
 
             if (error) throw error;
 

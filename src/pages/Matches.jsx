@@ -13,6 +13,7 @@ export default function Matches() {
     const fetchMatches = async () => {
         try {
             const myId = tgUser?.id?.toString() || 'user_m_1';
+            console.log('My ID:', myId);
 
             // Fetch matches where I am user1 or user2
             const { data: matchesData, error } = await supabase
@@ -25,17 +26,33 @@ export default function Matches() {
                 .or(`user1_id.eq.${myId},user2_id.eq.${myId}`)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase Error:', error);
+                throw error;
+            }
+
+            console.log('Raw Matches Data:', matchesData);
 
             // Transform data to get the distinct "other" user
-            const formattedMatches = matchesData.map(match => {
-                const otherUser = match.user1.id === myId ? match.user2 : match.user1;
-                return {
-                    match_id: match.id,
-                    user: otherUser
-                };
-            });
+            const formattedMatches = matchesData
+                .map(match => {
+                    // Check if users exist to avoid crash
+                    if (!match.user1 || !match.user2) {
+                        console.warn('Match with missing user data:', match);
+                        // If one side is missing but the other isn't, try to salvage (though unlikely in valid Foreign Key)
+                        // For now, return null to filter
+                        return null;
+                    }
 
+                    const otherUser = match.user1.id.toString() === myId ? match.user2 : match.user1;
+                    return {
+                        match_id: match.id,
+                        user: otherUser
+                    };
+                })
+                .filter(Boolean); // Remove nulls
+
+            console.log('Formatted Matches:', formattedMatches);
             setMatches(formattedMatches);
         } catch (error) {
             console.error('Error fetching matches:', error);
