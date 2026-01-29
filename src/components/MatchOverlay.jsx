@@ -7,7 +7,7 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
     // 🎭 "Liquid Metal" Avatar Frame
     // Uses randomized border-radius to create organic, breathing shapes
     const LiquidFrame = ({ children, delay = 0 }) => (
-        <div className="relative group w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+        <div className="relative group w-32 h-32 md:w-64 md:h-64 flex items-center justify-center">
             {/* 1. The Glowing Aura (Gold/Violet Bleed) */}
             <motion.div
                 animate={{
@@ -83,64 +83,61 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
             </div>
 
             {/* ==========================================
-                 LAYER 1: THE CONNECTOR (GOLDEN THREAD)
-               ========================================== */}
-            {/* Visually creates a "Tension" line between the two avatars */}
-            <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] pointer-events-none z-0 opacity-50 overflow-visible">
-                <defs>
-                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="transparent" />
-                        <stop offset="50%" stopColor="#FDE047" /> {/* Yellow-300 */}
-                        <stop offset="100%" stopColor="transparent" />
-                    </linearGradient>
-                    <filter id="glow">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                        <feMerge>
-                            <feMergeNode in="coloredBlur" />
-                            <feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                    </filter>
-                </defs>
-                <motion.path
-                    d="M 50,100 C 150,100 150,50 300,100 C 450,150 450,100 550,100" // S-curve
-                    fill="none"
-                    stroke="url(#goldGradient)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    filter="url(#glow)"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
-                />
-            </svg>
-
-
-            {/* ==========================================
-                 LAYER 2: MAIN COMPOSITION
+                 LAYER 1: MAIN COMPOSITION
                ========================================== */}
             <div className="relative z-10 w-full h-full flex flex-col justify-between py-12 md:py-20 px-6">
 
                 {/* SECTION: TYPOGRAPHY (Top) */}
-                <div className="flex-1 flex flex-col items-center justify-center relative">
+                <div className="flex-1 flex flex-col items-center justify-center relative w-full">
                     <motion.h2
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                         className="relative z-20 text-center mix-blend-hard-light"
                     >
-                        <span className="block text-2xl md:text-3xl font-light tracking-[0.8em] text-stone-400 mb-4 uppercase">
+                        <span className="block text-xl md:text-3xl font-light tracking-[0.6em] text-stone-400 mb-2 md:mb-4 uppercase">
                             Cosmic
                         </span>
-                        <span className="block text-7xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-500 to-amber-700 drop-shadow-[0_20px_50px_rgba(234,179,8,0.2)]">
+                        <span className="block text-5xl md:text-9xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-500 to-amber-700 drop-shadow-[0_20px_50px_rgba(234,179,8,0.2)]">
                             CONNECTION
                         </span>
                     </motion.h2>
 
                     {/* SECTION: AVATARS (Middle) */}
-                    <div className="flex items-center justify-center gap-4 md:gap-16 mt-12 w-full max-w-4xl relative z-10">
+                    <div className="relative flex items-center justify-center gap-4 md:gap-16 mt-8 md:mt-12 w-full max-w-4xl z-10">
+
+                        {/* GOLDEN THREAD (Anchored to Container) */}
+                        <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[150%] pointer-events-none z-0 opacity-50 overflow-visible" viewBox="0 0 600 200" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="transparent" />
+                                    <stop offset="50%" stopColor="#FDE047" />
+                                    <stop offset="100%" stopColor="transparent" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <motion.path
+                                d="M 0,100 C 150,100 150,50 300,100 C 450,150 450,100 600,100"
+                                fill="none"
+                                stroke="url(#goldGradient)"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                filter="url(#glow)"
+                                initial={{ pathLength: 0, opacity: 0 }}
+                                animate={{ pathLength: 1, opacity: 1 }}
+                                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+                            />
+                        </svg>
+
                         {/* Avatar 1: Left */}
                         <motion.div
-                            initial={{ x: -100, opacity: 0, rotate: -15 }}
+                            initial={{ x: -50, opacity: 0, rotate: -15 }}
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.2 }}
                         >
@@ -151,7 +148,7 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
 
                         {/* Avatar 2: Right */}
                         <motion.div
-                            initial={{ x: 100, opacity: 0, rotate: 15 }}
+                            initial={{ x: 50, opacity: 0, rotate: 15 }}
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.4 }}
                         >
