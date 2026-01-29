@@ -118,7 +118,7 @@ export default function Matches() {
 
     // Prepare grid items: Real matches followed by empty "void" slots to fill the "3x1000" concept
     // Render enough placeholders to make the grid look dense and infinite
-    const totalSlots = 300;
+    const totalSlots = 1000;
 
     return (
         <Layout>
@@ -163,9 +163,10 @@ export default function Matches() {
                             {/* Delete Button (Red X) */}
                             <button
                                 onClick={(e) => handleDelete(e, match_id)}
-                                className="absolute -top-1 -right-1 z-20 p-1 bg-red-600 text-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-black/50 backdrop-blur-sm rounded-full shadow-md text-sm hover:scale-110 transition-transform"
+                                title="Remove Match"
                             >
-                                <X size={12} strokeWidth={3} />
+                                ❌
                             </button>
                         </Link>
                     ))}
