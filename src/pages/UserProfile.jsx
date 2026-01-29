@@ -184,7 +184,7 @@ export default function UserProfile() {
                                 `}
                             >
                                 <Heart size={16} className={isLiked ? "fill-current" : ""} />
-                                {isLiked ? 'Connected' : 'Connect'}
+                                {isLiked ? 'SAVED' : 'SAVE'}
                             </button>
                         </div>
 
