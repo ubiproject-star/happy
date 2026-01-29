@@ -182,7 +182,11 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
                             transition={{ type: "spring", stiffness: 45, damping: 20, delay: 0.2 }}
                         >
                             <PulseFrame delay={0.8}>
-                                <img src={user2?.avatar_url || "https://i.pravatar.cc/300?img=5"} className="w-full h-full object-cover" alt="Them" />
+                                <img
+                                    src={user2?.avatar_url || `https://i.pravatar.cc/300?u=${user2?.id || 'unknown'}`}
+                                    className="w-full h-full object-cover"
+                                    alt="Them"
+                                />
                             </PulseFrame>
                         </motion.div>
                     </div>
