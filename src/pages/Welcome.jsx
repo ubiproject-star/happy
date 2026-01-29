@@ -40,30 +40,44 @@ const UserAvatar = ({ url, alt }) => (
 
 const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
     <div className="w-full h-full flex items-center justify-center relative bg-black">
-        <AnimatePresence mode='wait'>
-            {currentMatch ? (
-                <motion.img
-                    key={currentMatch.id}
+        {/* Render optimized raw image during spin, Motion image for reveal */}
+        {spinning ? (
+            /* Fast-swap raw image for performance */
+            currentMatch ? (
+                <img
                     src={currentMatch.avatar_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
-                    alt="Match"
-                    initial={{ scale: 1.1, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
-                    className="w-full h-full object-cover cursor-pointer hover:brightness-110 transition-all"
-                    onClick={onNavigate}
+                    alt="Spinning"
+                    className="w-full h-full object-cover filter blur-sm opacity-80"
                 />
             ) : (
-                <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50">
-                    <Sparkles size={24} className="text-white/30 animate-pulse" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-light">Void</span>
-                </div>
-            )}
-        </AnimatePresence>
+                <div className="absolute inset-0 bg-white/5 animate-pulse" />
+            )
+        ) : (
+            /* Stable view with smooth Reveal */
+            <AnimatePresence>
+                {currentMatch ? (
+                    <motion.img
+                        key={currentMatch.id}
+                        src={currentMatch.avatar_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
+                        alt="Match"
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-full h-full object-cover cursor-pointer hover:brightness-110 transition-all"
+                        onClick={onNavigate}
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50">
+                        <Sparkles size={24} className="text-white/30 animate-pulse" />
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-light">Void</span>
+                    </div>
+                )}
+            </AnimatePresence>
+        )}
 
         {/* Digital Noise Overlay when spinning */}
         {spinning && (
-            <div className="absolute inset-0 bg-white/5 mix-blend-overlay z-10" />
+            <div className="absolute inset-0 bg-white/10 mix-blend-overlay z-10" />
         )}
     </div>
 );
