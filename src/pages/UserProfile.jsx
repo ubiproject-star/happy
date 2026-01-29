@@ -83,7 +83,7 @@ export default function UserProfile() {
         <Layout>
             <LiveBackground />
 
-            <div className="relative z-10 min-h-screen pb-24 px-4 pt-6 font-sans text-stone-200">
+            <div className="relative z-10 min-h-screen pb-24 px-4 pt-6 font-sans text-stone-200 overflow-x-hidden w-full">
 
                 {/* Back Button */}
                 <button
@@ -94,7 +94,7 @@ export default function UserProfile() {
                 </button>
 
                 {/* Header Title */}
-                <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10 mx-10">
+                <div className="relative text-center mb-8 glass py-4 rounded-2xl border border-white/10 mx-auto max-w-xs sm:max-w-md mt-2">
                     <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm">
                         SIGNAL INTERCEPT
                     </h1>
@@ -120,7 +120,7 @@ export default function UserProfile() {
                     <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="space-y-6 p-6 glass rounded-3xl border border-white/5 shadow-2xl"
+                        className="space-y-6 p-6 glass rounded-3xl border border-white/5 shadow-2xl w-full"
                     >
                         {/* Name */}
                         <div className="text-center mb-6">
@@ -159,10 +159,10 @@ export default function UserProfile() {
                                         href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 transition-all group"
+                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 transition-all group overflow-hidden"
                                     >
                                         <Instagram className="text-gray-400 group-hover:text-[#E1306C] mb-2" size={24} />
-                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">Instagram</span>
+                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Instagram</span>
                                     </a>
                                 )}
 
@@ -172,10 +172,10 @@ export default function UserProfile() {
                                         href={`https://t.me/${profile.username}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#0088cc]/50 hover:bg-[#0088cc]/10 transition-all group"
+                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#0088cc]/50 hover:bg-[#0088cc]/10 transition-all group overflow-hidden"
                                     >
                                         <Send className="text-gray-400 group-hover:text-[#0088cc] mb-2" size={24} />
-                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">Telegram</span>
+                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Telegram</span>
                                     </a>
                                 )}
                             </div>
