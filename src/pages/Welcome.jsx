@@ -14,17 +14,18 @@ const CrystalLens = ({ children, borderColor = "border-white/20", glowColor = "s
     <div className={`
         relative w-36 h-44 rounded-[2.5rem] 
         bg-gradient-to-br from-white/10 to-transparent 
-        backdrop-blur-xl border border-white/20 
+        backdrop-blur-md border border-white/20 
         overflow-hidden 
         shadow-[0_0_30px_rgba(0,0,0,0.2)] ${glowColor}
-        group transition-all duration-500 hover:scale-105 hover:border-white/40
+        group transition-transform duration-500 hover:scale-105 hover:border-white/40
+        will-change-transform
     `}>
         {/* Prismatic Glint */}
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
         {/* Inner Content */}
         <div className="relative w-full h-full p-1.5">
-            <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black/50 relative">
+            <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black/60 relative">
                 {children}
             </div>
             {/* Glass Reflection */}
@@ -34,7 +35,7 @@ const CrystalLens = ({ children, borderColor = "border-white/20", glowColor = "s
 );
 
 const UserAvatar = ({ url, alt }) => (
-    <img src={url} alt={alt} className="w-full h-full object-cover opacity-90 transition-opacity hover:opacity-100" />
+    <img src={url} alt={alt} loading="lazy" className="w-full h-full object-cover opacity-90 transition-opacity hover:opacity-100" />
 );
 
 const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
@@ -45,10 +46,10 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
                     key={currentMatch.id}
                     src={currentMatch.avatar_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
                     alt="Match"
-                    initial={{ scale: 1.2, opacity: 0, filter: 'blur(10px)' }}
-                    animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
-                    transition={{ duration: 0.15 }}
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
                     className="w-full h-full object-cover cursor-pointer hover:brightness-110 transition-all"
                     onClick={onNavigate}
                 />
@@ -69,24 +70,24 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
 
 const EnergyCore = ({ spinning, onClick }) => (
     <div className="relative z-30 group flex items-center justify-center">
-        {/* Outer Ring */}
+        {/* Outer Ring - Simplified */}
         <div className={`
             absolute inset-0 rounded-full border border-white/10 
-            transition-all duration-500
+            transition-transform duration-500
             ${spinning ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
         `} />
 
         <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onClick}
             disabled={spinning}
             className={`
                 relative w-24 h-24 rounded-full flex items-center justify-center
                 bg-gradient-to-br from-white/10 via-white/5 to-transparent
-                backdrop-blur-md border border-white/20
-                shadow-[0_0_50px_rgba(255,255,255,0.1)]
+                backdrop-blur-sm border border-white/20
+                shadow-[0_0_50px_rgba(255,255,255,0.05)]
                 transition-all duration-300
-                group-hover:shadow-[0_0_80px_rgba(255,75,75,0.3)]
+                group-hover:shadow-[0_0_60px_rgba(255,75,75,0.2)]
                 group-hover:border-red-500/30
             `}
         >
@@ -94,14 +95,14 @@ const EnergyCore = ({ spinning, onClick }) => (
             <div className={`
                 w-12 h-12 rounded-full 
                 bg-gradient-to-tr from-red-600 to-orange-500
-                shadow-[0_0_30px_rgba(239,68,68,0.6)]
+                shadow-[0_0_20px_rgba(239,68,68,0.5)]
                 transition-all duration-500
                 ${spinning ? 'animate-pulse scale-90 brightness-150' : 'scale-100 group-hover:scale-110'}
             `} />
 
-            {/* Spinning Orbitals */}
+            {/* Spinning Orbitals - CSS Only */}
             {spinning && (
-                <div className="absolute inset-0 border-2 border-t-white/50 border-transparent rounded-full animate-spin duration-700" />
+                <div className="absolute inset-0 border-2 border-t-white/30 border-transparent rounded-full animate-spin" />
             )}
         </motion.button>
     </div>
@@ -112,16 +113,16 @@ const SonicWave = ({ spinning }) => (
         {[...Array(5)].map((_, i) => (
             <motion.div
                 key={i}
+                layout
                 className="w-1 bg-gradient-to-t from-transparent via-white/50 to-transparent rounded-full"
                 animate={{
-                    height: spinning ? [10, 32, 10] : 8,
-                    opacity: spinning ? 1 : 0.3
+                    height: spinning ? [10, 24, 10] : 8,
+                    opacity: spinning ? 1 : 0.4
                 }}
                 transition={{
-                    duration: 0.5,
+                    duration: 0.4,
                     repeat: Infinity,
-                    delay: i * 0.1,
-                    ease: "easeInOut"
+                    delay: i * 0.05
                 }}
             />
         ))}
@@ -130,11 +131,10 @@ const SonicWave = ({ spinning }) => (
 
 const AuroraBackground = () => (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-black">
-        <div className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle_at_50%_50%,rgba(76,29,149,0.15),transparent_60%)] animate-pulse-slow" />
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.1),transparent_50%)]" />
-        <div className="absolute bottom-0 left-20 w-full h-full bg-[radial-gradient(circle_at_20%_80%,rgba(59,130,246,0.1),transparent_50%)]" />
-        {/* Grain */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        {/* Static Gradients - Much lighter on GPU */}
+        <div className="absolute -top-[20%] -left-[20%] w-[140%] h-[140%] bg-[radial-gradient(circle_at_50%_50%,rgba(76,29,149,0.15),transparent_70%)]" />
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_20%,rgba(236,72,153,0.1),transparent_60%)]" />
+        <div className="absolute bottom-0 left-20 w-full h-full bg-[radial-gradient(circle_at_20%_80%,rgba(59,130,246,0.1),transparent_60%)]" />
     </div>
 );
 

@@ -103,12 +103,37 @@ export const SoundProvider = ({ children }) => {
         setMuted(prev => !prev);
     };
 
+    // Audio Pool for high-frequency sounds (Spin) to prevent GC lag
+    const spinPool = useRef([]);
+    const poolIndex = useRef(0);
+    const POOL_SIZE = 5;
+
+    useEffect(() => {
+        // Initialize pool
+        for (let i = 0; i < POOL_SIZE; i++) {
+            const audio = new Audio(SOUNDS.spin);
+            audio.volume = 0.4;
+            spinPool.current.push(audio);
+        }
+    }, []);
+
     const playSound = (type) => {
         if (muted || !SOUNDS[type]) return;
 
-        const audio = new Audio(SOUNDS[type]);
-        audio.volume = 0.6;
-        audio.play().catch(e => console.error("SFX error:", e));
+        if (type === 'spin') {
+            // Use Pool
+            const audio = spinPool.current[poolIndex.current];
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(() => { }); // Ignore play errors
+                poolIndex.current = (poolIndex.current + 1) % POOL_SIZE;
+            }
+        } else {
+            // Normal creation for infrequent sounds
+            const audio = new Audio(SOUNDS[type]);
+            audio.volume = type === 'power_click' || type === 'match' ? 0.8 : 0.6;
+            audio.play().catch(e => console.error("SFX error:", e));
+        }
     };
 
     return (
