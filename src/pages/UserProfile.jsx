@@ -209,7 +209,7 @@ export default function UserProfile() {
                                 `}
                             >
                                 <Heart size={16} className={isLiked ? "fill-current" : ""} />
-                                {isLiked ? 'SAVED' : 'SAVE'}
+                                {isLiked ? 'STORED' : 'STORAGE'}
                             </button>
                         </div>
 
@@ -223,7 +223,7 @@ export default function UserProfile() {
                             <ReadOnlyGrid
                                 label="Age"
                                 icon={Sparkles}
-                                value={profile.birth_year ? `${new Date().getFullYear() - profile.birth_year} (${profile.birth_year})` : 'N/A'}
+                                value={profile.birth_year ? `${new Date().getFullYear() - profile.birth_year}` : 'N/A'}
                             />
                             <ReadOnlyGrid
                                 label="Interested In"
