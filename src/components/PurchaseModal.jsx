@@ -13,9 +13,9 @@ const PACKAGES = [
         badge: null,
         color: 'cyan',
         features: [
-            '100 Search Rights',
-            'Basic Signal Clarity',
-            'Standard Algorithm'
+            '100 Signals',
+            'Basic Visibility',
+            'Standard Matching'
         ]
     },
     {
@@ -23,13 +23,13 @@ const PACKAGES = [
         title: 'Nebula',
         rights: 250,
         price: 2500,
-        save: 'SAVE 20%',
+        save: null,
         badge: 'POPULAR',
         color: 'indigo',
         features: [
-            '250 Search Rights',
-            'Enhanced Discovery',
-            'Previous Match Recall',
+            '250 Signals',
+            '2x Visibility',
+            'See Who Liked You',
             'Priority Support'
         ]
     },
@@ -39,14 +39,14 @@ const PACKAGES = [
         rights: 1000,
         price: 5000,
         save: 'SAVE 50%',
-        badge: 'BEST DEAL',
+        badge: 'BEST VALUE',
         color: 'purple',
         features: [
-            '1000 Search Rights',
-            'Priority Matching Queue',
-            'Exquisite Profile Badge',
-            'Algorithmic Boost',
-            'VIP Status'
+            '1000 Signals',
+            'Top Tier Visibility',
+            'Exclusive Profile Badge',
+            'Algorithm Boost',
+            'Direct Messaging'
         ]
     }
 ];
@@ -81,14 +81,14 @@ export default function PurchaseModal({ onClose, onPurchase }) {
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                            <h2 className="text-xl font-bold text-white tracking-tight">Quantum Access</h2>
+                            <h2 className="text-xl font-bold text-white tracking-tight">Happi Premium</h2>
                             <div className="px-1.5 py-0.5 rounded bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider">
                                 PREMIUM
                             </div>
                         </div>
 
                         <p className="text-gray-400 text-xs max-w-[260px] leading-relaxed">
-                            Only the most ambitious can show that their intentions are serious.
+                            Don't leave love to chance. Unlock full access to find your perfect match.
                         </p>
                     </div>
 
@@ -143,7 +143,7 @@ export default function PurchaseModal({ onClose, onPurchase }) {
                                                 {pkg.price} <Star size={14} className={isSelected ? 'fill-black text-black' : 'fill-yellow-500 text-yellow-500'} />
                                             </div>
                                             <div className={`text-[10px] font-medium uppercase tracking-wider ${isSelected ? 'text-gray-600' : 'text-gray-500'}`}>
-                                                {pkg.rights} Rights
+                                                {pkg.rights} Signals
                                             </div>
                                         </div>
                                     </div>
