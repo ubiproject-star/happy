@@ -152,8 +152,12 @@ export const SoundProvider = ({ children }) => {
         setCurrentTrackIndex(prev => (prev + 1) % SOUNDS.playlist.length);
     };
 
+    const prevTrack = () => {
+        setCurrentTrackIndex(prev => (prev - 1 + SOUNDS.playlist.length) % SOUNDS.playlist.length);
+    };
+
     return (
-        <SoundContext.Provider value={{ muted, toggleMute, playSound, initAudio, nextTrack }}>
+        <SoundContext.Provider value={{ muted, toggleMute, playSound, initAudio, nextTrack, prevTrack }}>
             {children}
         </SoundContext.Provider>
     );

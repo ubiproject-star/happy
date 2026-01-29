@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MatchOverlay from '../components/MatchOverlay';
 import PurchaseModal from '../components/PurchaseModal';
-import { ChevronLeft, Volume2, VolumeX, Sparkles, Play, Pause, SkipForward, Flame } from 'lucide-react';
+import { ChevronLeft, Volume2, VolumeX, Sparkles, Play, Pause, SkipForward, SkipBack, Flame } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 
 // --- Artistic Components ---
@@ -68,11 +68,25 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
                         onClick={onNavigate}
                     />
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50 bg-gradient-to-br from-red-900/20 to-black">
-                        <Flame size={28} className="text-red-500/80 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-red-100/60 font-medium text-center px-2">
-                            Hidden<br />Desire
-                        </span>
+                    <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50 bg-gradient-to-br from-red-900/40 to-black">
+                        {/* Enlarged, more intense flame */}
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                opacity: [0.7, 1, 0.7],
+                                rotate: [0, 5, -5, 0]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
+                        >
+                            <Flame
+                                size={56}
+                                className="text-red-500 fill-red-500/20 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)] filter blur-[0.5px]"
+                            />
+                        </motion.div>
                     </div>
                 )}
             </AnimatePresence>
@@ -160,7 +174,7 @@ const AuroraBackground = () => (
 export default function Welcome() {
     const { user } = useTelegram();
     const navigate = useNavigate();
-    const { playSound, initAudio, muted, toggleMute, nextTrack } = useSound();
+    const { playSound, initAudio, muted, toggleMute, nextTrack, prevTrack } = useSound();
 
     // --- STATE ---
     const [matches, setMatches] = useState([]);
@@ -309,12 +323,21 @@ export default function Welcome() {
                     </button>
 
                     {/* Center: Music Player (Premium) */}
-                    <div className="flex items-center gap-1.5 px-2 py-1.5 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); prevTrack(); }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95"
+                        >
+                            <SkipBack size={14} className="fill-white text-white" />
+                        </button>
+
+                        <div className="h-4 w-[1px] bg-white/10" />
+
                         <button
                             onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                            className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors active:scale-95"
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors active:scale-95"
                         >
-                            {muted ? <Play size={14} className="fill-white text-white ml-0.5" /> : <Pause size={14} className="fill-white text-white" />}
+                            {muted ? <Play size={16} className="fill-white text-white ml-0.5" /> : <Pause size={16} className="fill-white text-white" />}
                         </button>
 
                         <div className="h-4 w-[1px] bg-white/10" />
