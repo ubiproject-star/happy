@@ -102,8 +102,8 @@ export default function Splash({ onComplete, onInteract }) {
                     transition={{ delay: 0.5, duration: 1 }}
                     className="mt-12 flex flex-col items-center gap-3"
                 >
-                    <span className="text-xs tracking-[0.4em] font-medium text-stone-500 uppercase">
-                        Happi Dating...
+                    <span className="text-xs tracking-[0.4em] font-medium text-stone-500">
+                        Happi dating..
                     </span>
 
                     {/* Pink/Gold Progress Line */}
