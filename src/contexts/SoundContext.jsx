@@ -4,22 +4,27 @@ const SoundContext = createContext();
 
 // Sound Assets (Using reliable public CDNs)
 // Sound Assets
+// Sound Assets (Using reliable Freesound Previews)
 const SOUNDS = {
     // Playlist: Fashion -> LoFi -> Dreamy -> Ambient Wave
     playlist: [
         'https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fashion-house-126667.mp3', // 1. Upbeat (Kept)
         'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',    // 2. Chill (Kept)
-        'https://cdn.pixabay.com/download/audio/2022/10/25/audio_5575ad51c5.mp3?filename=abstract-fashion-pop-123760.mp3', // 3. Dreamy Flow
-        'https://cdn.pixabay.com/download/audio/2021/09/06/audio_349944df3e.mp3?filename=chill-abstract-intention-12099.mp3' // 4. Deep Relaxation
+        'https://cdn.pixabay.com/download/audio/2022/10/25/audio_5575ad51c5.mp3?filename=abstract-fashion-pop-123760.mp3', // 3. Dreamy
+        'https://cdn.pixabay.com/download/audio/2021/09/06/audio_349944df3e.mp3?filename=chill-abstract-intention-12099.mp3' // 4. Ambient
     ],
-    spin: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_cdae11a6c4.mp3?filename=ui-click-43196.mp3',
-    match: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3',
-    click: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_73685e9aa2.mp3?filename=pop-39222.mp3',
-    refresh: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_14275994b6.mp3?filename=whoosh-6316.mp3',
-    // Ultra Dopamine Button Sound (Coin/Level Up)
-    power_click: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_275bd94595.mp3?filename=collect-point-1596.mp3',
-    // Swipe left / Nope
-    nope: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=click-21156.mp3'
+    // Mechanical Tick
+    spin: 'https://cdn.freesound.org/previews/254/254316_4062622-lq.mp3',
+    // Win Jingle
+    match: 'https://cdn.freesound.org/previews/518/518308_240833-lq.mp3',
+    // Generic Click
+    click: 'https://cdn.freesound.org/previews/618/618376_11108226-lq.mp3',
+    // Swoosh
+    refresh: 'https://cdn.freesound.org/previews/320/320655_5260872-lq.mp3',
+    // Coin/Reward (Power Click)
+    power_click: 'https://cdn.freesound.org/previews/341/341695_5858296-lq.mp3',
+    // Dislike/Nope
+    nope: 'https://cdn.freesound.org/previews/648/648432_14167180-lq.mp3'
 };
 
 export const SoundProvider = ({ children }) => {
@@ -120,7 +125,11 @@ export const SoundProvider = ({ children }) => {
     }, []);
 
     const playSound = (type) => {
-        if (muted || !SOUNDS[type]) return;
+        if (muted) return;
+        if (!SOUNDS[type]) {
+            console.warn(`Sound type '${type}' not found.`);
+            return;
+        }
 
         if (type === 'spin') {
             // Use Pool
@@ -133,8 +142,9 @@ export const SoundProvider = ({ children }) => {
         } else {
             // Normal creation for infrequent sounds
             const audio = new Audio(SOUNDS[type]);
-            audio.volume = type === 'power_click' || type === 'match' ? 0.8 : 0.6;
-            audio.play().catch(e => console.error("SFX error:", e));
+            // Boost volume for important effects
+            audio.volume = (type === 'power_click' || type === 'match') ? 1.0 : 0.7;
+            audio.play().catch(e => console.error(`SFX play error for ${type}:`, e));
         }
     };
 
