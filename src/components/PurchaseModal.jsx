@@ -16,7 +16,8 @@ const PACKAGES = [
             '100 Buttons',
             '2x Visibility',
             'See Who Liked You',
-            'Priority Support'
+            'Priority Support',
+            'Direct Messaging'
         ]
     },
     {
