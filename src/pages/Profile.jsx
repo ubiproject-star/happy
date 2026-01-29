@@ -2,212 +2,164 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
-import { Camera, Save, Sparkles, User, Heart, FileText } from 'lucide-react';
+import LiveBackground from '../components/LiveBackground';
+import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe } from 'lucide-react';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
+
+    // State including new variables
     const [profile, setProfile] = useState(() => {
-        if (tgUser) {
-            return {
-                first_name: tgUser.first_name,
-                bio: '',
-                looking_for: 'all',
-                photo_url: tgUser.photo_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
-            };
-        } else {
-            return {
-                first_name: 'Demo User',
-                bio: 'I love coding and coffee.',
-                looking_for: 'female',
-                photo_url: 'https://randomuser.me/api/portraits/men/99.jpg'
-            };
-        }
+        // Mock data or TG data
+        const base = tgUser ? {
+            first_name: tgUser.first_name,
+            photo_url: tgUser.photo_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
+        } : {
+            first_name: 'Demo User',
+            photo_url: 'https://randomuser.me/api/portraits/men/99.jpg'
+        };
+
+        return {
+            ...base,
+            gender: 'Erkek',
+            orientation: 'Kadın',
+            region: 'Avrupa',
+            birth_year: 2000
+        };
     });
+
     const [loading, setLoading] = useState(false);
+
+    // Options as requested
+    const GENDER_OPTIONS = ['Erkek', 'Kadın', 'Gay', 'Lezbiyen'];
+    const ORIENTATION_OPTIONS = ['Erkek', 'Kadın', 'Gay', 'Lezbiyen'];
+    const REGION_OPTIONS = ['Kuzey Amerika', 'Asya', 'Avrupa', 'Afrika', 'Orta Doğu', 'Güney Amerika'];
 
     const handleSave = async () => {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
-            // In a real app, toast notification would go here
         }, 1000);
     };
 
-    // Reusing the "Erotic Flux" Pulse Frame for consistency
-    const ProfileAvatarFrame = ({ children }) => (
-        <div className="relative group w-40 h-40 flex items-center justify-center mx-auto mb-8">
-            {/* 1. Sensual Glow */}
-            <motion.div
-                animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.3, 0.5, 0.3]
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-[-4px] rounded-full bg-gradient-to-r from-pink-600 to-purple-800 blur-xl opacity-50"
-            />
-
-            {/* 2. The Liquid Rim */}
-            <motion.div
-                animate={{
-                    borderRadius: [
-                        "60% 40% 30% 70% / 60% 30% 70% 40%",
-                        "40% 60% 70% 30% / 50% 60% 30% 60%",
-                        "60% 40% 30% 70% / 60% 30% 70% 40%"
-                    ],
-                    rotate: [0, 2, -2, 0]
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 border-[2px] border-pink-400/40 overflow-hidden z-10 bg-rose-950/20 backdrop-blur-sm"
-            >
-                <div className="w-full h-full relative">
-                    <div className="absolute inset-0 bg-fuchsia-900/10 mix-blend-overlay z-10" />
-                    {children}
-                </div>
-            </motion.div>
-
-            {/* Camera Icon Badge */}
-            <button className="absolute bottom-1 right-1 z-20 p-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-full shadow-lg border border-pink-400/30 hover:scale-110 transition-transform">
-                <Camera size={16} />
-            </button>
-        </div>
-    );
-
-    const GlassInput = ({ label, icon: Icon, value, onChange, disabled, type = "text" }) => (
-        <div className="group space-y-2">
-            <label className="flex items-center gap-2 text-xs font-medium tracking-widest text-pink-200/50 uppercase ml-1 group-focus-within:text-pink-300 transition-colors">
-                <Icon size={12} /> {label}
+    // Modern Box Selection Component
+    const SelectionGrid = ({ label, icon: Icon, options, value, onChange }) => (
+        <div className="space-y-3">
+            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-blue uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]">
+                <Icon size={14} /> {label}
             </label>
-            <div className="relative">
-                <input
-                    type={type}
-                    value={value}
-                    onChange={onChange}
-                    disabled={disabled}
-                    className="
-                        w-full p-4 rounded-xl 
-                        bg-white/5 border border-white/10 
-                        text-pink-50 placeholder-pink-200/20
-                        focus:border-pink-500/50 focus:bg-pink-900/10 focus:shadow-[0_0_20px_rgba(236,72,153,0.1)]
-                        outline-none transition-all duration-300
-                    "
-                />
+            <div className="grid grid-cols-2 gap-3">
+                {options.map((opt) => (
+                    <button
+                        key={opt}
+                        onClick={() => onChange(opt)}
+                        className={`
+                            py-3 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 border
+                            ${value === opt
+                                ? 'bg-neon-blue/20 border-neon-blue text-white shadow-[0_0_20px_rgba(0,243,255,0.3)]'
+                                : 'bg-[#1a1a1a]/80 border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300'}
+                        `}
+                    >
+                        {opt}
+                    </button>
+                ))}
             </div>
         </div>
     );
 
-    const OptionPill = ({ label, value, current, onClick }) => (
-        <button
-            onClick={onClick}
-            className={`
-                flex-1 py-3 px-4 rounded-lg text-xs font-medium tracking-wider uppercase transition-all duration-300 border
-                ${current === value
-                    ? 'bg-pink-600/20 border-pink-500 text-pink-100 shadow-[0_0_15px_rgba(236,72,153,0.2)]'
-                    : 'bg-white/5 border-white/5 text-stone-500 hover:border-white/20 hover:text-stone-300'}
-            `}
-        >
-            {label}
-        </button>
-    );
-
     return (
         <Layout>
-            <div className="min-h-screen pb-24 px-6 pt-8 font-sans bg-[#0f0305] text-stone-200 selection:bg-pink-500/30">
-                {/* Background Atmosphere */}
-                <div className="fixed inset-0 pointer-events-none z-0">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#38040e_0%,#000000_100%)]" />
-                    <div className="absolute inset-0 opacity-[0.15] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+            <LiveBackground />
+
+            <div className="relative z-10 min-h-screen pb-24 px-4 pt-6 font-sans text-stone-200">
+
+                {/* Header Title - Matching Discover Style */}
+                <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10">
+                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent drop-shadow-sm">
+                        IDENTITY
+                    </h1>
+                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Configure Your Signals</p>
                 </div>
 
-                <div className="relative z-10 max-w-md mx-auto">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <motion.h2
-                            initial={{ y: -20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            className="text-3xl font-thin tracking-[0.2em] text-pink-100 uppercase"
-                        >
-                            Your <span className="font-black italic text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">Essence</span>
-                        </motion.h2>
-                        <p className="text-pink-300/40 text-xs tracking-widest mt-2 uppercase">Curate your persona</p>
+                <div className="max-w-md mx-auto space-y-8">
+
+                    {/* AVATAR: Static & Clean (Animation Removed) */}
+                    <div className="flex justify-center">
+                        <div className="relative group">
+                            <div className="w-32 h-32 rounded-full p-[2px] bg-gradient-to-tr from-neon-blue to-neon-purple shadow-[0_0_30px_rgba(0,243,255,0.2)]">
+                                <img
+                                    src={profile.photo_url}
+                                    alt="Profile"
+                                    className="w-full h-full rounded-full object-cover border-4 border-[#0a0a0a]"
+                                />
+                            </div>
+                            <button className="absolute bottom-0 right-0 p-2 bg-[#1a1a1a] text-neon-blue rounded-full border border-neon-blue/30 shadow-lg hover:scale-110 transition-transform">
+                                <Camera size={16} />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Avatar */}
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <ProfileAvatarFrame>
-                            <img
-                                src={profile.photo_url}
-                                alt="Profile"
-                                className="w-full h-full object-cover"
-                            />
-                        </ProfileAvatarFrame>
-                    </motion.div>
-
-                    {/* Form Fields */}
+                    {/* FORM GRID */}
                     <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="space-y-6"
+                        className="space-y-8 p-6 glass rounded-3xl border border-white/5"
                     >
                         {/* Name (Read Only) */}
-                        <div className="opacity-70 grayscale">
-                            <GlassInput
-                                label="Identity Name"
-                                icon={User}
+                        <div className="space-y-2 opacity-60">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
+                                <User size={14} /> Name (Synced)
+                            </label>
+                            <input
                                 value={profile.first_name}
-                                disabled={true}
+                                disabled
+                                className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/5 text-gray-400 font-mono text-sm"
                             />
                         </div>
 
-                        {/* Bio */}
-                        <div className="group space-y-2">
-                            <label className="flex items-center gap-2 text-xs font-medium tracking-widest text-pink-200/50 uppercase ml-1 group-focus-within:text-pink-300 transition-colors">
-                                <FileText size={12} /> Manifesto / Bio
+                        {/* Birth Year */}
+                        <div className="space-y-3">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                                <Calendar size={14} /> Birth Year
                             </label>
-                            <textarea
-                                value={profile.bio}
-                                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                            <input
+                                type="number"
+                                value={profile.birth_year}
+                                onChange={(e) => setProfile({ ...profile, birth_year: parseInt(e.target.value) })}
                                 className="
-                                    w-full p-4 rounded-xl min-h-[120px]
-                                    bg-white/5 border border-white/10 
-                                    text-pink-50 placeholder-pink-200/20
-                                    focus:border-pink-500/50 focus:bg-pink-900/10 focus:shadow-[0_0_20px_rgba(236,72,153,0.1)]
-                                    outline-none transition-all duration-300 resize-none
+                                    w-full p-4 rounded-xl 
+                                    bg-[#1a1a1a] border border-white/10 
+                                    text-white font-bold text-center tracking-widest
+                                    focus:border-neon-purple focus:shadow-[0_0_20px_rgba(168,85,247,0.2)]
+                                    outline-none transition-all duration-300
                                 "
-                                placeholder="Whisper something to the universe..."
                             />
                         </div>
 
-                        {/* Looking For */}
-                        <div className="space-y-2">
-                            <label className="flex items-center gap-2 text-xs font-medium tracking-widest text-pink-200/50 uppercase ml-1">
-                                <Heart size={12} /> Desires
-                            </label>
-                            <div className="flex gap-2">
-                                <OptionPill
-                                    label="Men"
-                                    value="male"
-                                    current={profile.looking_for}
-                                    onClick={() => setProfile({ ...profile, looking_for: 'male' })}
-                                />
-                                <OptionPill
-                                    label="Women"
-                                    value="female"
-                                    current={profile.looking_for}
-                                    onClick={() => setProfile({ ...profile, looking_for: 'female' })}
-                                />
-                                <OptionPill
-                                    label="All"
-                                    value="all"
-                                    current={profile.looking_for}
-                                    onClick={() => setProfile({ ...profile, looking_for: 'all' })}
-                                />
-                            </div>
-                        </div>
+                        {/* Variables Grid */}
+                        <SelectionGrid
+                            label="Gender Identity"
+                            icon={User}
+                            options={GENDER_OPTIONS}
+                            value={profile.gender}
+                            onChange={(val) => setProfile({ ...profile, gender: val })}
+                        />
+
+                        <SelectionGrid
+                            label="Interested In"
+                            icon={Heart}
+                            options={ORIENTATION_OPTIONS}
+                            value={profile.orientation}
+                            onChange={(val) => setProfile({ ...profile, orientation: val })}
+                        />
+
+                        <SelectionGrid
+                            label="Region"
+                            icon={Globe}
+                            options={REGION_OPTIONS}
+                            value={profile.region}
+                            onChange={(val) => setProfile({ ...profile, region: val })}
+                        />
 
                         {/* Save Button */}
                         <motion.button
@@ -216,20 +168,20 @@ export default function Profile() {
                             onClick={handleSave}
                             disabled={loading}
                             className={`
-                                w-full mt-8 py-4 rounded-full font-bold tracking-widest uppercase text-sm
-                                shadow-lg flex items-center justify-center gap-3
-                                transition-all duration-500
+                                w-full py-4 rounded-full font-black tracking-widest uppercase text-sm
+                                shadow-lg flex items-center justify-center gap-3 mt-8
+                                transition-all duration-300 border border-transparent
                                 ${loading
                                     ? 'bg-stone-800 text-stone-500 cursor-wait'
-                                    : 'bg-gradient-to-r from-pink-700 to-rose-900 text-white shadow-[0_10px_30px_rgba(190,24,93,0.3)] hover:shadow-[0_10px_40px_rgba(190,24,93,0.5)] border border-pink-500/20'}
+                                    : 'bg-white text-black hover:bg-neon-blue hover:text-black hover:shadow-[0_0_30px_rgba(0,243,255,0.4)]'}
                             `}
                         >
                             {loading ? (
-                                <span className="animate-pulse">Saving...</span>
+                                <span className="animate-pulse">Syncing...</span>
                             ) : (
                                 <>
-                                    <Sparkles size={18} className="text-pink-200" />
-                                    Immortalize
+                                    <Sparkles size={18} />
+                                    Update Signal
                                 </>
                             )}
                         </motion.button>
