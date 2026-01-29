@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Check, X, Crown, Sparkles, Key } from 'lucide-react';
+import { Star, Check, X, Crown, Sparkles } from 'lucide-react';
+import pixelHeart from '../assets/pixel-heart.png';
 
 const PACKAGES = [
     {
@@ -75,8 +76,8 @@ export default function PurchaseModal({ onClose, onPurchase }) {
                 >
                     {/* Header Image/Icon Section */}
                     <div className="pt-8 pb-6 flex flex-col items-center text-center px-6">
-                        <div className="w-16 h-16 rounded-full bg-black border border-white/10 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                            <Key size={32} className="text-white" />
+                        <div className="w-20 h-20 mb-4 drop-shadow-[0_0_15px_rgba(255,0,85,0.4)]">
+                            <img src={pixelHeart} alt="Logo" className="w-full h-full object-contain pixelated" />
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
