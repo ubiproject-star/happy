@@ -60,8 +60,34 @@ export default function UserProfile() {
     if (loading) {
         return (
             <Layout>
-                <div className="flex justify-center items-center h-screen bg-black text-neon-blue animate-pulse">
-                    Parsing Signal...
+                <LiveBackground />
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
+                    <motion.div
+                        animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.5, 1, 0.5],
+                            rotate: [0, 180, 360]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        className="mb-8"
+                    >
+                        <Sparkles size={48} className="text-pink-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.6)]" />
+                    </motion.div>
+
+                    <h2 className="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-pulse">
+                        ESTABLISHING<br />CONNECTION
+                    </h2>
+
+                    <div className="mt-4 flex gap-2">
+                        {[...Array(3)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                animate={{ opacity: [0, 1, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                className="w-2 h-2 rounded-full bg-pink-500"
+                            />
+                        ))}
+                    </div>
                 </div>
             </Layout>
         );
