@@ -6,11 +6,13 @@ import Layout from '../components/Layout';
 import { X, Heart, Loader2 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import LiveBackground from '../components/LiveBackground';
+import { useSound } from '../contexts/SoundContext';
 
 export default function Swipe() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user: tgUser } = useTelegram();
+    const { playSound } = useSound();
 
     const fetchUsers = async () => {
         try {
@@ -36,6 +38,13 @@ export default function Swipe() {
     }, [tgUser]);
 
     const handleSwipe = async (direction, swipedUser) => {
+        // Audio Feedback
+        if (direction === 'right') {
+            playSound('power_click'); // Dopamine for Like
+        } else {
+            playSound('nope'); // Subtle click for Nope
+        }
+
         // Remove user from stack locally
         const newUsers = users.filter(u => u.id !== swipedUser.id);
         setUsers(newUsers);
@@ -69,6 +78,7 @@ export default function Swipe() {
 
                     if (mutualLike) {
                         // It's a match!
+                        playSound('match'); // Victory Sound
                         alert("It's a Match! 🎉"); // Simple alert for MVP
                         await supabase
                             .from('matches')

@@ -16,8 +16,10 @@ const SOUNDS = {
     match: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3',
     click: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_73685e9aa2.mp3?filename=pop-39222.mp3',
     refresh: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_14275994b6.mp3?filename=whoosh-6316.mp3',
-    // Ultra Dopamine Button Sound (Snappy & Bright)
-    power_click: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_04d5560b43.mp3?filename=correct-6033.mp3'
+    // Ultra Dopamine Button Sound (Coin/Level Up)
+    power_click: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_275bd94595.mp3?filename=collect-point-1596.mp3',
+    // Swipe left / Nope
+    nope: 'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=click-21156.mp3'
 };
 
 export const SoundProvider = ({ children }) => {
