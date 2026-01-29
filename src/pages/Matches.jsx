@@ -12,11 +12,10 @@ export default function Matches() {
 
     const fetchMatches = async () => {
         try {
+            // Robust ID handling
             const myId = tgUser?.id?.toString() || 'user_m_1';
-            console.log('My ID:', myId);
+            console.log('Fetching matches for:', myId);
 
-            // Fetch matches where I am user1 or user2
-            // We select raw IDs to safely identify "me" even if my profile doesn't exist in 'users' table (and thus join fails)
             const { data: matchesData, error } = await supabase
                 .from('matches')
                 .select(`
@@ -31,37 +30,31 @@ export default function Matches() {
 
             if (error) {
                 console.error('Supabase Error:', error);
-                throw error;
+                // Don't throw, just handle gracefully
             }
 
-            console.log('Raw Matches Data:', matchesData);
+            const safeData = matchesData || [];
+            console.log('Raw Matches Data:', safeData);
 
-            // Transform data to get the distinct "other" user
-            const formattedMatches = matchesData
+            const formattedMatches = safeData
                 .map(match => {
-                    // Identify the other user based on raw IDs
-                    // Note: IDs in DB might be numbers or strings, safely compare as strings
                     const isUser1 = match.user1_id.toString() === myId;
-
                     const otherUser = isUser1 ? match.user2 : match.user1;
 
-                    // We only strictly NEED the other user's profile to display the card
-                    if (!otherUser) {
-                        console.warn('Match found but partner profile missing:', match);
-                        return null;
-                    }
+                    if (!otherUser) return null;
 
                     return {
                         match_id: match.id,
                         user: otherUser
                     };
                 })
-                .filter(Boolean); // Remove nulls
+                .filter(Boolean);
 
             console.log('Formatted Matches:', formattedMatches);
             setMatches(formattedMatches);
         } catch (error) {
             console.error('Error fetching matches:', error);
+            setMatches([]); // Ensure array state on error
         } finally {
             setLoading(false);
         }
@@ -69,9 +62,8 @@ export default function Matches() {
 
     const handleDelete = async (e, matchId) => {
         e.preventDefault();
-        e.stopPropagation(); // Double safety
+        e.stopPropagation();
 
-        // Optimistic update
         setMatches(prev => prev.filter(m => m.match_id !== matchId));
 
         try {
@@ -82,7 +74,7 @@ export default function Matches() {
 
             if (error) {
                 console.error('Error deleting match:', error);
-                fetchMatches(); // Revert on error
+                // Optionally revert state here if strict consistency is needed
             }
         } catch (err) {
             console.error('Delete failed:', err);
@@ -103,7 +95,6 @@ export default function Matches() {
         );
     }
 
-    // Generate colors for placeholders/matches
     const getGradient = (index) => {
         const colors = [
             'from-pink-500 to-rose-500',
@@ -116,14 +107,14 @@ export default function Matches() {
         return colors[index % colors.length];
     };
 
-    // Prepare grid items: Real matches followed by empty "void" slots to fill the "3x1000" concept
-    // Render enough placeholders to make the grid look dense and infinite
+    // Ensure we always render 1000 slots total (Real + Placeholders)
     const totalSlots = 1000;
+    const realMatchCount = matches.length;
+    const voidCount = Math.max(0, totalSlots - realMatchCount);
 
     return (
         <Layout>
             <div className="min-h-screen bg-black pb-24 px-2 pt-6 font-sans">
-
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
@@ -134,15 +125,13 @@ export default function Matches() {
 
                 {/* 3-Column Grid */}
                 <div className="grid grid-cols-3 gap-2">
-
                     {/* 1. Real Matches */}
                     {matches.map(({ match_id, user }, index) => (
                         <Link
-                            to={`/user/${user.id}`} // Links to Profile
+                            to={`/user/${user.id}`}
                             key={match_id}
                             className="relative aspect-[3/4] group"
                         >
-                            {/* Colorful Frame */}
                             <div className={`absolute inset-0 rounded-xl p-[2px] bg-gradient-to-br ${getGradient(index)} shadow-lg transition-transform duration-300 group-hover:scale-105`}>
                                 <div className="w-full h-full relative rounded-[10px] overflow-hidden bg-gray-900">
                                     <img
@@ -150,8 +139,6 @@ export default function Matches() {
                                         alt={user.first_name}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                                     />
-
-                                    {/* Name Overlay */}
                                     <div className="absolute inset-x-0 bottom-0 pt-8 pb-2 px-1 bg-gradient-to-t from-black/90 to-transparent">
                                         <p className="text-white text-[10px] font-bold text-center uppercase tracking-wider truncate">
                                             {user.first_name || 'Unknown'}
@@ -159,11 +146,9 @@ export default function Matches() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Delete Button (Red X) */}
                             <button
                                 onClick={(e) => handleDelete(e, match_id)}
-                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-black/50 backdrop-blur-sm rounded-full shadow-md text-sm hover:scale-110 transition-transform"
+                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-black/50 backdrop-blur-sm rounded-full shadow-md text-sm hover:scale-110 transition-transform cursor-pointer"
                                 title="Remove Match"
                             >
                                 ❌
@@ -171,9 +156,9 @@ export default function Matches() {
                         </Link>
                     ))}
 
-                    {/* 2. Void Slots (Placeholders) */}
-                    {Array.from({ length: Math.max(0, totalSlots - matches.length) }).map((_, i) => {
-                        const index = matches.length + i;
+                    {/* 2. Void Slots */}
+                    {Array.from({ length: voidCount }).map((_, i) => {
+                        const index = realMatchCount + i;
                         return (
                             <div key={`void-${i}`} className="relative aspect-[3/4] opacity-20 hover:opacity-40 transition-opacity">
                                 <div className={`absolute inset-0 rounded-xl p-[1px] bg-gradient-to-br ${getGradient(index)}`}>
@@ -184,7 +169,6 @@ export default function Matches() {
                             </div>
                         );
                     })}
-
                 </div>
             </div>
         </Layout>
