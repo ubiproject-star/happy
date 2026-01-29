@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MatchOverlay from '../components/MatchOverlay';
 import PurchaseModal from '../components/PurchaseModal';
-import { ChevronLeft, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { ChevronLeft, Volume2, VolumeX, Sparkles, Play, Pause, SkipForward, Flame } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 
 // --- Artistic Components ---
@@ -68,9 +68,11 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
                         onClick={onNavigate}
                     />
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50">
-                        <Sparkles size={24} className="text-white/30 animate-pulse" />
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-light">Void</span>
+                    <div className="flex flex-col items-center justify-center h-full space-y-2 opacity-50 bg-gradient-to-br from-red-900/20 to-black">
+                        <Flame size={28} className="text-red-500/80 animate-pulse drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-red-100/60 font-medium text-center px-2">
+                            Hidden<br />Desire
+                        </span>
                     </div>
                 )}
             </AnimatePresence>
@@ -158,7 +160,7 @@ const AuroraBackground = () => (
 export default function Welcome() {
     const { user } = useTelegram();
     const navigate = useNavigate();
-    const { playSound, initAudio, muted, toggleMute } = useSound();
+    const { playSound, initAudio, muted, toggleMute, nextTrack } = useSound();
 
     // --- STATE ---
     const [matches, setMatches] = useState([]);
@@ -306,14 +308,24 @@ export default function Welcome() {
                         <ChevronLeft size={20} />
                     </button>
 
-                    {/* Center: Mute Toggle (Minimal) */}
-                    <button
-                        onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-all hover:bg-white/10"
-                    >
-                        {muted ? <VolumeX size={14} className="text-white/40" /> : <Volume2 size={14} className="text-white" />}
-                        <span className="text-[10px] font-medium tracking-widest uppercase text-white/50">{muted ? 'Muted' : 'Sound'}</span>
-                    </button>
+                    {/* Center: Music Player (Premium) */}
+                    <div className="flex items-center gap-1.5 px-2 py-1.5 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors active:scale-95"
+                        >
+                            {muted ? <Play size={14} className="fill-white text-white ml-0.5" /> : <Pause size={14} className="fill-white text-white" />}
+                        </button>
+
+                        <div className="h-4 w-[1px] bg-white/10" />
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); nextTrack(); }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95"
+                        >
+                            <SkipForward size={14} className="fill-white text-white" />
+                        </button>
+                    </div>
 
                     {/* Right: Credits Counter */}
                     <button
