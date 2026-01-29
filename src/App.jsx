@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Welcome from './pages/Welcome';
 import Profile from './pages/Profile';
 import Matches from './pages/Matches';
-import Chat from './pages/Chat';
+import UserProfile from './pages/UserProfile';
 import Splash from './components/Splash';
 
 import { useSound } from './contexts/SoundContext';
@@ -22,7 +22,7 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/matches" element={<Matches />} />
-        <Route path="/chat/:id" element={<Chat />} />
+        <Route path="/user/:id" element={<UserProfile />} />
       </Routes>
     </BrowserRouter>
   );

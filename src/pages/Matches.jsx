@@ -93,7 +93,7 @@ export default function Matches() {
 
                             return (
                                 <Link
-                                    to={`/chat/${match_id}`}
+                                    to={`/user/${user.id}`}
                                     key={match_id}
                                     className="relative aspect-[3/4] group"
                                 >

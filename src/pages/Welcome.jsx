@@ -231,7 +231,7 @@ export default function Welcome() {
                 console.error('Match save failed:', err);
             }
 
-            navigate(`/chat/${currentMatch.id}`);
+            navigate(`/user/${currentMatch.id}`);
         }
     };
 

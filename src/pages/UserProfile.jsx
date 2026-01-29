@@ -1,0 +1,189 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import Layout from '../components/Layout';
+import LiveBackground from '../components/LiveBackground';
+import { User, Heart, Globe, Instagram, Send, Sparkles, ChevronLeft } from 'lucide-react';
+
+export default function UserProfile() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const matchUser = async () => {
+        if (!id) return;
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (data) {
+                // Determine display values (mocking defaults if missing, mimicking Profile.jsx structure)
+                setProfile({
+                    ...data,
+                    first_name: data.first_name || 'Mystery User',
+                    photo_url: data.photo_url || `https://i.pravatar.cc/300?u=${id}`,
+                    // Mock additional fields if they don't exist in DB yet, or use generic defaults
+                    gender: 'Man', // In a real app, these would come from DB
+                    orientation: 'Female',
+                    region: 'Europe',
+                    birth_year: 2000,
+                    instagram_handle: data.username, // Using username as proxy or empty
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        matchUser();
+    }, [id]);
+
+    const ReadOnlyGrid = ({ label, icon: Icon, value }) => (
+        <div className="space-y-3">
+            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-blue uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]">
+                <Icon size={14} /> {label}
+            </label>
+            <div className="w-full p-3 rounded-xl bg-[#1a1a1a]/80 border border-white/5 text-white shadow-[0_0_20px_rgba(0,243,255,0.1)] text-xs font-bold tracking-wider uppercase">
+                {value || 'Not Specified'}
+            </div>
+        </div>
+    );
+
+    if (loading) {
+        return (
+            <Layout>
+                <div className="flex justify-center items-center h-screen bg-black text-neon-blue animate-pulse">
+                    Parsing Signal...
+                </div>
+            </Layout>
+        );
+    }
+
+    if (!profile) {
+        return (
+            <Layout>
+                <div className="flex flex-col items-center justify-center h-screen bg-black text-gray-500 gap-4">
+                    <Sparkles size={48} />
+                    <p className="uppercase tracking-widest">User Not Found</p>
+                    <button onClick={() => navigate(-1)} className="text-neon-blue hover:underline text-sm uppercase">Go Back</button>
+                </div>
+            </Layout>
+        );
+    }
+
+    return (
+        <Layout>
+            <LiveBackground />
+
+            <div className="relative z-10 min-h-screen pb-24 px-4 pt-6 font-sans text-stone-200">
+
+                {/* Back Button */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="absolute top-6 left-4 z-50 p-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white hover:bg-white/10 transition-colors"
+                >
+                    <ChevronLeft size={24} />
+                </button>
+
+                {/* Header Title */}
+                <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10 mx-10">
+                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm">
+                        SIGNAL INTERCEPT
+                    </h1>
+                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Identity Verified</p>
+                </div>
+
+                <div className="max-w-md mx-auto space-y-8">
+
+                    {/* AVATAR: Static & High Quality */}
+                    <div className="flex justify-center">
+                        <div className="relative group">
+                            <div className="w-40 h-40 rounded-full p-[3px] bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 shadow-[0_0_40px_rgba(236,72,153,0.3)]">
+                                <img
+                                    src={profile.photo_url}
+                                    alt="Profile"
+                                    className="w-full h-full rounded-full object-cover border-4 border-[#0a0a0a]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* READ-ONLY GRID */}
+                    <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="space-y-6 p-6 glass rounded-3xl border border-white/5 shadow-2xl"
+                    >
+                        {/* Name */}
+                        <div className="text-center mb-6">
+                            <h2 className="text-3xl font-black italic text-white tracking-tight">{profile.first_name}</h2>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{profile.birth_year ? `Born ${profile.birth_year}` : 'Unknown Age'}</p>
+                        </div>
+
+                        {/* Variables */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <ReadOnlyGrid
+                                label="Gender"
+                                icon={User}
+                                value={profile.gender}
+                            />
+                            <ReadOnlyGrid
+                                label="Interested In"
+                                icon={Heart}
+                                value={profile.orientation}
+                            />
+                        </div>
+
+                        <ReadOnlyGrid
+                            label="Region"
+                            icon={Globe}
+                            value={profile.region}
+                        />
+
+                        {/* Social Links Section */}
+                        <div className="space-y-4 pt-6 border-t border-white/5">
+                            <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase text-center mb-4">Connections</h3>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Instagram */}
+                                {profile.instagram_handle && (
+                                    <a
+                                        href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 transition-all group"
+                                    >
+                                        <Instagram className="text-gray-400 group-hover:text-[#E1306C] mb-2" size={24} />
+                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">Instagram</span>
+                                    </a>
+                                )}
+
+                                {/* Telegram (Assuming username exists) */}
+                                {profile.username && (
+                                    <a
+                                        href={`https://t.me/${profile.username}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#0088cc]/50 hover:bg-[#0088cc]/10 transition-all group"
+                                    >
+                                        <Send className="text-gray-400 group-hover:text-[#0088cc] mb-2" size={24} />
+                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">Telegram</span>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+
+                    </motion.div>
+                </div>
+            </div>
+        </Layout>
+    );
+}
