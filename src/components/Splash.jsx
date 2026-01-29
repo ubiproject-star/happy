@@ -103,7 +103,7 @@ export default function Splash({ onComplete, onInteract }) {
                     className="mt-12 flex flex-col items-center gap-3"
                 >
                     <span className="text-xs tracking-[0.4em] font-medium text-stone-500 uppercase">
-                        Happi Match
+                        Happi Dating...
                     </span>
 
                     {/* Pink/Gold Progress Line */}
