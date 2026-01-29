@@ -5,19 +5,19 @@ const SoundContext = createContext();
 // Sound Assets (Using reliable public CDNs)
 // Sound Assets
 const SOUNDS = {
-    // Playlist: Fashion -> Deep -> Chill -> Wave
+    // Playlist: Fashion -> LoFi -> Dreamy -> Ambient Wave
     playlist: [
-        'https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fashion-house-126667.mp3', // Current (Upbeat)
-        'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',    // Chill
-        'https://cdn.pixabay.com/download/audio/2022/03/15/audio_19aa14df20.mp3?filename=summer-nights-10023.mp3', // Deep
-        'https://cdn.pixabay.com/download/audio/2020/09/14/audio_33ee2687d4.mp3?filename=both-of-us-14037.mp3'      // Emotional
+        'https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fashion-house-126667.mp3', // 1. Upbeat (Kept)
+        'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',    // 2. Chill (Kept)
+        'https://cdn.pixabay.com/download/audio/2022/10/25/audio_5575ad51c5.mp3?filename=abstract-fashion-pop-123760.mp3', // 3. Dreamy Flow
+        'https://cdn.pixabay.com/download/audio/2021/09/06/audio_349944df3e.mp3?filename=chill-abstract-intention-12099.mp3' // 4. Deep Relaxation
     ],
     spin: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_cdae11a6c4.mp3?filename=ui-click-43196.mp3',
     match: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=success-1-6297.mp3',
     click: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_73685e9aa2.mp3?filename=pop-39222.mp3',
     refresh: 'https://cdn.pixabay.com/download/audio/2022/03/24/audio_14275994b6.mp3?filename=whoosh-6316.mp3',
-    // Ultra Dopamine Button Sound (Magical/Reward)
-    power_click: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_8db1f1117d.mp3?filename=arcade-magic-notification-2-6326.mp3'
+    // Ultra Dopamine Button Sound (Snappy & Bright)
+    power_click: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_04d5560b43.mp3?filename=correct-6033.mp3'
 };
 
 export const SoundProvider = ({ children }) => {
