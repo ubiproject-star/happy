@@ -2,6 +2,13 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
+-- 0. CLEANUP (To prevent "relation already exists" errors)
+drop table if exists public.payments cascade;
+drop table if exists public.likes cascade;
+drop table if exists public.matches cascade;
+drop table if exists public.users cascade;
+drop function if exists get_compatible_users;
+
 -- 1. USERS Table
 create table public.users (
   id bigint primary key, -- Telegram User ID
