@@ -94,12 +94,16 @@ export default function Profile() {
                 .from('users')
                 .upsert({ id: tgUser.id, ...updates });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase UPSERT Error Detailed:", JSON.stringify(error, null, 2));
+                alert(`DB Error: ${error.message} (Code: ${error.code})`);
+                throw error;
+            }
 
-            // alert(t('saved_success') || 'Saved!'); // Optional: Feedback
+            alert(t('saved_success') || 'Profile Saved Successfully!');
         } catch (error) {
-            console.error('Error updating profile:', error);
-            alert('Failed to save profile.');
+            console.error('CRITICAL Error updating profile:', error);
+            // alert('Failed to save profile.'); // Handled above
         } finally {
             setLoading(false);
         }
