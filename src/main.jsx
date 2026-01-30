@@ -4,11 +4,14 @@ import './index.css'
 import App from './App.jsx'
 
 import { SoundProvider } from './contexts/SoundContext.jsx'
+import { LanguageProvider } from './contexts/LanguageContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SoundProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </SoundProvider>
   </StrictMode>,
 )

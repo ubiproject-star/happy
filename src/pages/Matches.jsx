@@ -1,7 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import useTelegram from '../hooks/useTelegram';
-import Layout from '../components/Layout';
+import { useSound } from '../contexts/SoundContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { Loader2, Plus, X } from 'lucide-react';
 
@@ -9,6 +11,8 @@ export default function Matches() {
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user: tgUser } = useTelegram();
+    const { playSound } = useSound();
+    const { t } = useLanguage();
 
     const fetchMatches = async () => {
         try {
@@ -19,13 +23,13 @@ export default function Matches() {
             const { data: matchesData, error } = await supabase
                 .from('matches')
                 .select(`
-                    id,
-                    user1_id,
-                    user2_id,
-                    user1:user1_id(*),
-                    user2:user2_id(*)
+id,
+    user1_id,
+    user2_id,
+    user1: user1_id(*),
+        user2: user2_id(*)
                 `)
-                .or(`user1_id.eq.${myId},user2_id.eq.${myId}`)
+                .or(`user1_id.eq.${myId}, user2_id.eq.${myId} `)
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -118,9 +122,9 @@ export default function Matches() {
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
-                        YOUR FAVORITES
+                        {t('your_favorites')}
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-2 uppercase">Quantum Entanglements</p>
+                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-2 uppercase">{t('quantum_entanglements')}</p>
                 </div>
 
                 {/* 3-Column Grid */}
@@ -128,11 +132,11 @@ export default function Matches() {
                     {/* 1. Real Matches */}
                     {matches.map(({ match_id, user }, index) => (
                         <Link
-                            to={`/user/${user.id}`}
+                            to={`/ user / ${user.id} `}
                             key={match_id}
                             className="relative aspect-[3/4] group"
                         >
-                            <div className={`absolute inset-0 rounded-xl p-[2px] bg-gradient-to-br ${getGradient(index)} shadow-lg transition-transform duration-300 group-hover:scale-105`}>
+                            <div className={`absolute inset - 0 rounded - xl p - [2px] bg - gradient - to - br ${getGradient(index)} shadow - lg transition - transform duration - 300 group - hover: scale - 105`}>
                                 <div className="w-full h-full relative rounded-[10px] overflow-hidden bg-gray-900">
                                     <img
                                         src={user.photo_url || `https://i.pravatar.cc/300?u=${user.id}`}
@@ -140,12 +144,12 @@ export default function Matches() {
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                                     />
                                     <div className="absolute inset-x-0 bottom-0 pt-8 pb-2 px-1 bg-gradient-to-t from-black/90 to-transparent">
-                                        <p className="text-white text-[10px] font-bold text-center uppercase tracking-wider truncate">
-                                            {user.first_name || 'Unknown'}
-                                        </p>
+                                        <h3 className="text-white font-bold text-sm tracking-wide">
+                                            {user.first_name || t('unknown')}
+                                        </h3>
                                     </div>
-                                </div>
-                            </div>
+                                </div >
+                            </div >
                             <button
                                 onClick={(e) => handleDelete(e, match_id)}
                                 className="absolute -top-2 -right-2 z-20 p-1.5 bg-black/50 backdrop-blur-sm rounded-full shadow-md text-sm hover:scale-110 transition-transform cursor-pointer"
@@ -153,24 +157,26 @@ export default function Matches() {
                             >
                                 ❌
                             </button>
-                        </Link>
+                        </Link >
                     ))}
 
                     {/* 2. Void Slots */}
-                    {Array.from({ length: voidCount }).map((_, i) => {
-                        const index = realMatchCount + i;
-                        return (
-                            <div key={`void-${i}`} className="relative aspect-[3/4] opacity-20 hover:opacity-40 transition-opacity">
-                                <div className={`absolute inset-0 rounded-xl p-[1px] bg-gradient-to-br ${getGradient(index)}`}>
-                                    <div className="w-full h-full bg-[#0a0a0a] rounded-[10px] flex items-center justify-center">
-                                        <Plus className="text-white/10" size={16} />
+                    {
+                        Array.from({ length: voidCount }).map((_, i) => {
+                            const index = realMatchCount + i;
+                            return (
+                                <div key={`void-${i}`} className="relative aspect-[3/4] opacity-20 hover:opacity-40 transition-opacity">
+                                    <div className={`absolute inset-0 rounded-xl p-[1px] bg-gradient-to-br ${getGradient(index)}`}>
+                                        <div className="w-full h-full bg-[#0a0a0a] rounded-[10px] flex items-center justify-center">
+                                            <Plus className="text-white/10" size={16} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </Layout>
+                            );
+                        })
+                    }
+                </div >
+            </div >
+        </Layout >
     );
 }

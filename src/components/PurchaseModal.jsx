@@ -2,60 +2,62 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Check, X, Crown, Sparkles } from 'lucide-react';
 import pixelHeart from '../assets/pixel-heart.png';
-
-const PACKAGES = [
-    {
-        id: 'spark',
-        title: 'Spark',
-        rights: 100,
-        price: 1000,
-        save: null,
-        badge: null,
-        color: 'cyan',
-        features: [
-            '100 Buttons',
-            '2x Visibility',
-            'See Who Liked You',
-            'Priority Support',
-            'Direct Messaging'
-        ]
-    },
-    {
-        id: 'nebula',
-        title: 'Nebula',
-        rights: 250,
-        price: 2500,
-        save: 'Smart Choice',
-        badge: 'POPULAR',
-        color: 'indigo',
-        features: [
-            '250 Buttons',
-            'Top Tier Visibility',
-            'Exclusive Profile Badge',
-            'Algorithm Boost',
-            'Direct Messaging'
-        ]
-    },
-    {
-        id: 'supernova',
-        title: 'Supernova',
-        rights: 1000,
-        price: 5000,
-        save: 'SAVE 50%',
-        badge: 'BEST VALUE',
-        color: 'purple',
-        features: [
-            '1000 Buttons',
-            'Top Tier Visibility',
-            'Exclusive Profile Badge',
-            'Algorithm Boost',
-            'Direct Messaging'
-        ]
-    }
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function PurchaseModal({ onClose, onPurchase }) {
+    const { t } = useLanguage();
     const [selectedId, setSelectedId] = useState('supernova');
+
+    const PACKAGES = [
+        {
+            id: 'spark',
+            title: 'Spark',
+            rights: 100,
+            price: 1000,
+            save: null,
+            badge: null,
+            color: 'cyan',
+            features: [
+                `100 ${t('credits')}`,
+                '2x Visibility',
+                'See Who Liked You',
+                'Priority Support',
+                'Direct Messaging'
+            ]
+        },
+        {
+            id: 'nebula',
+            title: 'Nebula',
+            rights: 250,
+            price: 2500,
+            save: 'Smart Choice',
+            badge: 'POPULAR',
+            color: 'indigo',
+            features: [
+                `250 ${t('credits')}`,
+                'Top Tier Visibility',
+                'Exclusive Profile Badge',
+                'Algorithm Boost',
+                'Direct Messaging'
+            ]
+        },
+        {
+            id: 'supernova',
+            title: 'Supernova',
+            rights: 1000,
+            price: 5000,
+            save: 'SAVE 50%',
+            badge: 'BEST VALUE',
+            color: 'purple',
+            features: [
+                `1000 ${t('credits')}`,
+                'Top Tier Visibility',
+                'Exclusive Profile Badge',
+                'Algorithm Boost',
+                'Direct Messaging'
+            ]
+        }
+    ];
 
     const selectedPackage = PACKAGES.find(p => p.id === selectedId) || PACKAGES[2];
 

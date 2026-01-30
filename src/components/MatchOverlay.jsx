@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MessageCircle, Heart } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
+    const { t } = useLanguage();
 
     // 🎭 "Erotic Flux" Avatar Frame
     // Deep, sensual colors: Magenta, Deep Red, Violet
@@ -210,7 +212,7 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
 
                         <span className="relative z-10 flex items-center justify-center gap-3 text-pink-50 font-bold text-lg tracking-widest uppercase">
                             <MessageCircle size={20} className="text-pink-300" />
-                            Connect Now
+                            {t('connect_now')}
                         </span>
                     </motion.button>
 
@@ -222,7 +224,7 @@ export default function MatchOverlay({ user1, user2, onChat, onKeepSwiping }) {
                         onClick={onKeepSwiping}
                         className="text-xs text-pink-300/50 uppercase tracking-[0.3em] font-medium hover:text-pink-100 transition-colors py-2"
                     >
-                        Keep Searching
+                        {t('keep_searching')}
                     </motion.button>
                 </div>
             </div>

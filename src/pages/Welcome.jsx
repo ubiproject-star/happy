@@ -8,6 +8,7 @@ import MatchOverlay from '../components/MatchOverlay';
 import PurchaseModal from '../components/PurchaseModal';
 import { ChevronLeft, Volume2, VolumeX, Sparkles, Play, Pause, SkipForward, SkipBack, Flame } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Artistic Components ---
 
@@ -175,6 +176,7 @@ export default function Welcome() {
     const { user } = useTelegram();
     const navigate = useNavigate();
     const { playSound, initAudio, muted, toggleMute, nextTrack, prevTrack } = useSound();
+    const { t } = useLanguage();
 
     // --- STATE ---
     const [matches, setMatches] = useState([]);
@@ -388,7 +390,7 @@ export default function Welcome() {
                 {/* Footer / Status */}
                 <div className="absolute bottom-6 w-full text-center z-10 pointer-events-none">
                     <span className="text-[9px] uppercase tracking-[0.3em] text-white/20">
-                        {spinning ? 'Searching Quantum Field...' : 'System Ready'}
+                        {spinning ? t('searching') : t('system_ready')}
                     </span>
                 </div>
 

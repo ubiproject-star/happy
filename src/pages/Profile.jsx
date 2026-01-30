@@ -3,10 +3,14 @@ import { motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
-import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send } from 'lucide-react';
+import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send, Languages } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
+    const { t, language } = useLanguage();
+    const navigate = useNavigate();
 
     // State including new variables
     const [profile, setProfile] = useState(() => {
@@ -21,6 +25,7 @@ export default function Profile() {
 
         return {
             ...base,
+            instagram_handle: '',
             gender: 'Man',
             orientation: 'Female',
             region: 'Europe',
@@ -30,9 +35,9 @@ export default function Profile() {
 
     const [loading, setLoading] = useState(false);
 
-    // Options as requested
-    const GENDER_OPTIONS = ['Man', 'Woman', 'Trans man', 'Trans woman'];
-    const ORIENTATION_OPTIONS = ['Male', 'Female', 'Lesbian', 'Gay', 'Bisexual'];
+    // Options - We map these to translation keys for display
+    const GENDER_OPTIONS = ['man', 'woman', 'trans_man', 'trans_woman'];
+    const ORIENTATION_OPTIONS = ['male', 'female', 'lesbian', 'gay', 'bisexual'];
     const REGION_OPTIONS = ['North America', 'Asia', 'Europe', 'Africa', 'Middle East', 'South America'];
 
     const handleSave = async () => {
@@ -43,26 +48,36 @@ export default function Profile() {
     };
 
     // Modern Box Selection Component
-    const SelectionGrid = ({ label, icon: Icon, options, value, onChange }) => (
+    const SelectionGrid = ({ label, icon: Icon, options, value, onChange, translateOption = false }) => (
         <div className="space-y-3">
             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-blue uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]">
                 <Icon size={14} /> {label}
             </label>
             <div className="grid grid-cols-2 gap-3">
-                {options.map((opt) => (
-                    <button
-                        key={opt}
-                        onClick={() => onChange(opt)}
-                        className={`
-                            py-3 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 border
-                            ${value === opt
-                                ? 'bg-neon-blue/20 border-neon-blue text-white shadow-[0_0_20px_rgba(0,243,255,0.3)]'
-                                : 'bg-[#1a1a1a]/80 border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300'}
-                        `}
-                    >
-                        {opt}
-                    </button>
-                ))}
+                {options.map((opt) => {
+                    // Display Text: Translate if it's a key, else show literal
+                    const displayText = translateOption ? t(opt) : opt;
+
+                    // Comparison: We compare raw values (e.g. 'man') if that's what we store, 
+                    // or we store the translated value? 
+                    // Ideally we store constants ('man') and display translations. 
+                    // Assuming 'value' is the constant.
+
+                    return (
+                        <button
+                            key={opt}
+                            onClick={() => onChange(opt)}
+                            className={`
+                                py-3 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300 border
+                                ${value === opt
+                                    ? 'bg-neon-blue/20 border-neon-blue text-white shadow-[0_0_20px_rgba(0,243,255,0.3)]'
+                                    : 'bg-[#1a1a1a]/80 border-white/5 text-gray-500 hover:border-white/20 hover:text-gray-300'}
+                            `}
+                        >
+                            {displayText}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );
@@ -73,17 +88,17 @@ export default function Profile() {
 
             <div className="relative z-10 min-h-screen pb-24 px-4 pt-4 md:pt-10 font-sans text-stone-200">
 
-                {/* Header Title - Matching Discover Style */}
+                {/* Header Title */}
                 <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10">
                     <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent drop-shadow-sm">
-                        PROFILE
+                        {t('profile_title')}
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">Configure your profile</p>
+                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">{t('configure_profile')}</p>
                 </div>
 
                 <div className="max-w-md mx-auto space-y-8">
 
-                    {/* AVATAR: Static & Clean (Animation Removed) */}
+                    {/* AVATAR: Static & Clean */}
                     <div className="flex justify-center">
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-full p-[2px] bg-gradient-to-tr from-neon-blue to-neon-purple shadow-[0_0_30px_rgba(0,243,255,0.2)]">
@@ -108,7 +123,7 @@ export default function Profile() {
                         {/* Name (Read Only) */}
                         <div className="space-y-2 opacity-60">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
-                                <User size={14} /> Name (Synced)
+                                <User size={14} /> Name
                             </label>
                             <input
                                 value={profile.first_name}
@@ -117,9 +132,23 @@ export default function Profile() {
                             />
                         </div>
 
+                        {/* Language Selector Link */}
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
+                                <Languages size={14} /> Language
+                            </label>
+                            <button
+                                onClick={() => navigate('/language')}
+                                className="w-full p-4 rounded-xl bg-[#1a1a1a] border border-white/10 text-white font-bold text-left flex justify-between items-center hover:bg-[#252525] transition-colors"
+                            >
+                                <span>{language ? language.toUpperCase() : 'Select'}</span>
+                                <Globe size={16} className="text-gray-500" />
+                            </button>
+                        </div>
+
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
-                                <Calendar size={14} /> AGE
+                                <Calendar size={14} /> {t('age')}
                             </label>
                             <input
                                 type="number"
@@ -137,33 +166,36 @@ export default function Profile() {
 
                         {/* Variables Grid */}
                         <SelectionGrid
-                            label="Gender Identity"
+                            label={t('gender')}
                             icon={User}
                             options={GENDER_OPTIONS}
                             value={profile.gender}
                             onChange={(val) => setProfile({ ...profile, gender: val })}
+                            translateOption={true}
                         />
 
                         <SelectionGrid
-                            label="Interested In"
+                            label={t('orientation')}
                             icon={Heart}
                             options={ORIENTATION_OPTIONS}
                             value={profile.orientation}
                             onChange={(val) => setProfile({ ...profile, orientation: val })}
+                            translateOption={true}
                         />
 
                         <SelectionGrid
-                            label="Region"
+                            label={t('region')}
                             icon={Globe}
                             options={REGION_OPTIONS}
                             value={profile.region}
                             onChange={(val) => setProfile({ ...profile, region: val })}
+                            // Region names are usually proper nouns, keeping as is for now or translate if added to dict
+                            translateOption={false}
                         />
 
                         {/* Social Links Section */}
                         <div className="space-y-4 pt-4 border-t border-white/5">
                             <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Social Connections</h3>
-
                             {/* Instagram */}
                             <div className="group space-y-2">
                                 <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#E1306C] uppercase ml-1 drop-shadow-[0_0_5px_rgba(225,48,108,0.5)]">
@@ -186,7 +218,6 @@ export default function Profile() {
                                     <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#E1306C] transition-colors" size={18} />
                                 </div>
                             </div>
-
                             {/* Telegram (Auto-Generated) */}
                             <div className="group space-y-2">
                                 <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#0088cc] uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,136,204,0.5)]">
@@ -231,7 +262,7 @@ export default function Profile() {
                             ) : (
                                 <>
                                     <Sparkles size={18} />
-                                    UPDATE
+                                    {t('update')}
                                 </>
                             )}
                         </motion.button>

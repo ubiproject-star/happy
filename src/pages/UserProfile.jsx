@@ -6,8 +6,10 @@ import { supabase } from '../lib/supabase';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
 import { User, Heart, Globe, Instagram, Send, Sparkles, ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function UserProfile() {
+    const { t } = useLanguage();
     const { id } = useParams();
     const navigate = useNavigate();
     const { user: tgUser } = useTelegram();
@@ -209,29 +211,34 @@ export default function UserProfile() {
                                 `}
                             >
                                 <Heart size={16} className={isLiked ? "fill-current" : ""} />
-                                {isLiked ? 'STORED' : 'STORAGE'}
+                                <span className={isLiked ? "text-neon-red" : ""}>
+                                    {isLiked ? t('saved_success') || 'SAVED' : t('save')}
+                                </span>
                             </button>
                         </div>
 
                         {/* Variables */}
                         <div className="grid grid-cols-2 gap-4">
                             <ReadOnlyGrid
-                                label="Gender"
+                                label={t('gender')}
                                 icon={User}
-                                value={profile.gender}
+                                value={t(profile.gender?.toLowerCase() || 'man')}
                             />
+                            <div className="space-y-3">
+                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                                    <Sparkles size={14} /> {t('age')}
+                                </label>
+                                <div className="w-full p-4 rounded-xl bg-[#1a1a1a] border border-white/10 text-white font-bold text-center tracking-widest shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                                    {profile.birth_year ? `${new Date().getFullYear() - profile.birth_year}` : 'N/A'}
+                                </div>
+                            </div>
                             <ReadOnlyGrid
-                                label="Age"
-                                icon={Sparkles}
-                                value={profile.birth_year ? `${new Date().getFullYear() - profile.birth_year}` : 'N/A'}
-                            />
-                            <ReadOnlyGrid
-                                label="Interested In"
+                                label={t('orientation')}
                                 icon={Heart}
-                                value={profile.orientation}
+                                value={t(profile.orientation?.toLowerCase() || 'female')}
                             />
                             <ReadOnlyGrid
-                                label="Region"
+                                label={t('region')}
                                 icon={Globe}
                                 value={profile.region}
                             />

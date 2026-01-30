@@ -1,16 +1,18 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { User, MessageCircle, Flame } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import clsx from 'clsx';
 
 export default function BottomNav() {
     const location = useLocation();
+    const { t } = useLanguage();
 
     // Order: Profile (Left) - Discover (Center) - Matches (Right)
     const navItems = [
-        { path: '/profile', icon: User, label: 'Profile' },
-        { path: '/', icon: Flame, label: 'Discover' },
-        { path: '/matches', icon: MessageCircle, label: 'Matches' },
+        { path: '/profile', icon: User, label: t('nav_profile') },
+        { path: '/', icon: Flame, label: t('nav_discover') },
+        { path: '/matches', icon: MessageCircle, label: t('nav_matches') },
     ];
 
     return (
