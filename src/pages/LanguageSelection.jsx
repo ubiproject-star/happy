@@ -22,7 +22,7 @@ export default function LanguageSelection() {
     const langCodes = Object.keys(languages);
 
     return (
-        <div className="min-h-screen bg-black flex flex-col items-center pt-safe px-4 pb-10 text-white font-sans overflow-y-auto">
+        <div className="h-screen bg-black flex flex-col items-center pt-safe px-4 pb-32 text-white font-sans overflow-y-auto custom-scrollbar">
 
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
