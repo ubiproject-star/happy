@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
+
 
 const SoundContext = createContext();
 
@@ -39,36 +39,7 @@ export const SoundProvider = ({ children }) => {
     const musicRef = useRef(null);
     const [audioInitialized, setAudioInitialized] = useState(false);
 
-    // Fetch Cloud Music on Mount
-    useEffect(() => {
-        const fetchMusic = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('app_music')
-                    .select('*')
-                    .order('created_at', { ascending: true }); // Keep consistent order or random
 
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    // Map DB entries to Storage URLs
-                    const cloudTracks = data.map(track => {
-                        const { data: urlData } = supabase.storage
-                            .from('music')
-                            .getPublicUrl(track.file_path);
-                        return urlData.publicUrl;
-                    });
-
-                    console.log("Loaded Cloud Playlist:", cloudTracks.length, "tracks");
-                    setPlaylist(cloudTracks);
-                }
-            } catch (err) {
-                console.warn("Using Default Playlist (Cloud Music not ready):", err.message);
-            }
-        };
-
-        fetchMusic();
-    }, []);
 
     // Initialize Audio Object Once (or re-init if playlist changes significantly?)
     // Actually, we just update the source naturally via the effect below.

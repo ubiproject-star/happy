@@ -117,3 +117,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local Media Assets
+music_assets/
+*.jpg
+*.JPG

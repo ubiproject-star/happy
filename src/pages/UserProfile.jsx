@@ -34,6 +34,11 @@ export default function UserProfile() {
             if (error) throw error;
 
             setIsLiked(true);
+
+            // Navigate to Matches after short delay for feedback
+            setTimeout(() => {
+                navigate('/matches');
+            }, 1000);
         } catch (error) {
             console.error('Error liking user:', error);
         }
@@ -74,12 +79,13 @@ export default function UserProfile() {
                     ...data,
                     first_name: data.first_name || 'Mystery User',
                     photo_url: data.photo_url || `https://i.pravatar.cc/300?u=${id}`,
-                    // Mock additional fields if they don't exist in DB yet, or use generic defaults
-                    gender: 'Man', // In a real app, these would come from DB
-                    orientation: 'Female',
-                    region: 'Europe',
-                    birth_year: 2000,
-                    instagram_handle: data.username, // Using username as proxy or empty
+                    // Respect DB values, fallback only if null
+                    gender: data.gender || 'man',
+                    interested_in: data.interested_in || 'female',
+                    region: data.region || 'World',
+                    birth_year: data.birth_year || 2000,
+                    instagram_handle: data.instagram_handle,
+                    username: data.username,
                 });
             }
         } catch (error) {
@@ -212,7 +218,7 @@ export default function UserProfile() {
                             >
                                 <Heart size={16} className={isLiked ? "fill-current" : ""} />
                                 <span className={isLiked ? "text-neon-red" : ""}>
-                                    {isLiked ? t('saved_success') || 'SAVED' : t('save')}
+                                    {isLiked ? t('saved_success') : t('save')}
                                 </span>
                             </button>
                         </div>
@@ -222,7 +228,7 @@ export default function UserProfile() {
                             <ReadOnlyGrid
                                 label={t('gender')}
                                 icon={User}
-                                value={t(profile.gender?.toLowerCase() || 'man')}
+                                value={t(profile.gender?.toLowerCase() || 'unknown')}
                             />
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
@@ -235,45 +241,47 @@ export default function UserProfile() {
                             <ReadOnlyGrid
                                 label={t('orientation')}
                                 icon={Heart}
-                                value={t(profile.orientation?.toLowerCase() || 'female')}
+                                value={t(profile.interested_in?.toLowerCase() || 'unknown')}
                             />
                             <ReadOnlyGrid
                                 label={t('region')}
                                 icon={Globe}
-                                value={profile.region}
+                                value={profile.region || t('unknown')}
                             />
                         </div>
 
                         {/* Social Links Section */}
-                        <div className="space-y-4 pt-6 border-t border-white/5">
-                            <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase text-center mb-4">Connections</h3>
+                        <div className="space-y-4 pt-6 text-center border-t border-white/5">
+                            <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">Connections</h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {/* Instagram */}
-                                {profile.instagram_handle && (
-                                    <a
-                                        href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 transition-all group overflow-hidden"
-                                    >
-                                        <Instagram className="text-gray-400 group-hover:text-[#E1306C] mb-2" size={24} />
-                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Instagram</span>
-                                    </a>
-                                )}
+                                <a
+                                    href={profile.instagram_handle ? `https://instagram.com/${profile.instagram_handle.replace('@', '')}` : '#'}
+                                    target={profile.instagram_handle ? "_blank" : "_self"}
+                                    rel={profile.instagram_handle ? "noopener noreferrer" : ""}
+                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all group overflow-hidden
+                                        ${profile.instagram_handle
+                                            ? 'bg-[#1a1a1a] border-white/5 hover:border-[#E1306C]/50 hover:bg-[#E1306C]/10 cursor-pointer'
+                                            : 'bg-white/5 border-transparent opacity-30 cursor-not-allowed'}`}
+                                >
+                                    <Instagram className={`mb-2 ${profile.instagram_handle ? 'text-gray-400 group-hover:text-[#E1306C]' : 'text-gray-600'}`} size={24} />
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Instagram</span>
+                                </a>
 
-                                {/* Telegram (Assuming username exists) */}
-                                {profile.username && (
-                                    <a
-                                        href={`https://t.me/${profile.username}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex flex-col items-center justify-center p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 hover:border-[#0088cc]/50 hover:bg-[#0088cc]/10 transition-all group overflow-hidden"
-                                    >
-                                        <Send className="text-gray-400 group-hover:text-[#0088cc] mb-2" size={24} />
-                                        <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Telegram</span>
-                                    </a>
-                                )}
+                                {/* Telegram */}
+                                <a
+                                    href={profile.username ? `https://t.me/${profile.username}` : '#'}
+                                    target={profile.username ? "_blank" : "_self"}
+                                    rel={profile.username ? "noopener noreferrer" : ""}
+                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all group overflow-hidden
+                                        ${profile.username
+                                            ? 'bg-[#1a1a1a] border-white/5 hover:border-[#0088cc]/50 hover:bg-[#0088cc]/10 cursor-pointer'
+                                            : 'bg-white/5 border-transparent opacity-30 cursor-not-allowed'}`}
+                                >
+                                    <Send className={`mb-2 ${profile.username ? 'text-gray-400 group-hover:text-[#0088cc]' : 'text-gray-600'}`} size={24} />
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-widest truncate w-full text-center">Telegram</span>
+                                </a>
                             </div>
                         </div>
 
