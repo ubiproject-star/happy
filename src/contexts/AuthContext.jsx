@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
                     first_name: tgUser.first_name,
                     // photo_url: tgUser.photo_url, // Let default be null or handle elsewhere if needed, but safe to set initially
                     language_code: tgUser.language_code,
-                    coins: 100, // Welcome Bonus
+                    coins: 3, // Welcome Bonus (Updated to 3)
                     created_at: new Date().toISOString()
                 };
 
