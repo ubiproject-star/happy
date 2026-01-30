@@ -23,9 +23,23 @@ export const AuthProvider = ({ children }) => {
             const { token, user: dbUser } = data;
             if (token) {
                 supabase.realtime.setAuth(token);
-                setUser(dbUser);
+
+                // FORCE RE-FETCH: Don't trust the Edge Function's return value blindly for mutable fields
+                const { data: freshUser, error: refreshError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', dbUser.id)
+                    .single();
+
+                if (freshUser && !refreshError) {
+                    console.log('Force-refreshed User Data:', freshUser);
+                    setUser(freshUser);
+                } else {
+                    console.warn('Refresh failed, using Edge Function data');
+                    setUser(dbUser);
+                }
+
                 setSession({ access_token: token });
-                console.log('User synced:', dbUser.username);
             }
         } catch (err) {
             console.error('Auth Sync Failed:', err);
