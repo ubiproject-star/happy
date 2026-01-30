@@ -71,7 +71,7 @@ export default function Profile() {
         <Layout>
             <LiveBackground />
 
-            <div className="relative z-10 min-h-screen pb-24 px-4 pt-6 font-sans text-stone-200">
+            <div className="relative z-10 min-h-screen pb-24 px-4 pt-4 md:pt-10 font-sans text-stone-200">
 
                 {/* Header Title - Matching Discover Style */}
                 <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10">

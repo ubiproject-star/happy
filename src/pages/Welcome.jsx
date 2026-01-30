@@ -297,7 +297,7 @@ export default function Welcome() {
                 </AnimatePresence>
 
                 {/* Header Section */}
-                <header className="flex justify-between items-center relative z-10 mb-8 px-4 pt-4">
+                <header className="flex justify-between items-center relative z-10 mb-8 px-4 pt-4 md:pt-10">
                     {/* Left: Back */}
                     <button
                         onClick={() => navigate(-1)}

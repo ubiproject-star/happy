@@ -114,7 +114,7 @@ export default function Matches() {
 
     return (
         <Layout>
-            <div className="min-h-screen bg-black pb-24 px-2 pt-6 font-sans">
+            <div className="min-h-screen bg-black pb-24 px-2 pt-4 md:pt-10 font-sans">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
