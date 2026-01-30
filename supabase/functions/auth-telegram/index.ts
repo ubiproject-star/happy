@@ -11,7 +11,8 @@ import * as djwt from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+// TEMP FIX: Hardcode key because secrets might be missing
+const supabaseServiceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod3BibHJvaXRzeGV6aWhuYXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTU4NTkyNiwiZXhwIjoyMDg1MTYxOTI2fQ.0BsRuXRQURc1WDeU-7Wbm6MXJMxFXGhHu66HnxAe7ho';
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 

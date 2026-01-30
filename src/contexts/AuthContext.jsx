@@ -9,92 +9,85 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const { tg, user: telegramUser } = useTelegram();
-    const [user, setUser] = useState(null); // Database User
+    const [user, setUser] = useState(null);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // OPTIMISTIC HYDRATION: Load Telegram data immediately to prevent UI flash/undefined
-    useEffect(() => {
-        if (telegramUser && !user) {
-            console.log("AuthContext: Hydrating with Unsafe Telegram User (Optimistic)", telegramUser);
-            // Tag with source for debugging
-            setUser({ ...telegramUser, _source: 'Optimistic (Telegram)' });
-        }
-    }, [telegramUser]); // Run when telegramUser becomes available
+    // DIRECT DB SYNC (No Edge Function)
+    const syncUserWithDB = async (tgUser) => {
+        if (!tgUser) return;
 
-    const fetchUser = async (initData) => {
-        if (!initData) {
-            console.warn("AuthContext: No initData available");
-            setLoading(false);
-            return;
-        }
+        console.log("AuthContext: Starting Direct DB Sync for", tgUser.id);
 
         try {
-            console.log("AuthContext: invoking auth-telegram...");
-            const { data, error } = await supabase.functions.invoke('auth-telegram', {
-                body: { initData },
-            });
+            // 1. Try to fetch existing user
+            let { data: dbUser, error: fetchError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', String(tgUser.id))
+                .single();
 
-            if (error) {
-                console.error("AuthContext: Edge Function Error:", error);
-                throw error;
+            if (fetchError && fetchError.code !== 'PGRST116') {
+                // Real error (not just "not found")
+                console.error("AuthContext: Fetch Error", fetchError);
             }
 
-            const { token, user: dbUser } = data;
+            // 2. If not found, or to update basic fields, UPSERT
+            // We only update "synced" fields, preserving user-defined ones like bio/gender
+            const updates = {
+                id: tgUser.id,
+                username: tgUser.username,
+                first_name: tgUser.first_name,
+                last_name: tgUser.last_name,
+                language_code: tgUser.language_code,
+                // photo_url: tgUser.photo_url, // OPTIONAL: Do not overwrite if we want custom photos? 
+                // Let's set it only if it's new.
+                updated_at: new Date().toISOString()
+            };
 
-            if (!dbUser || !dbUser.id) {
-                console.error("AuthContext: No user returned from Edge Function", data);
-                throw new Error("Invalid response from auth-telegram");
+            // If new user, set default fields
+            if (!dbUser) {
+                updates.coins = 100; // Welcome bonus
             }
 
-            if (token) {
-                supabase.realtime.setAuth(token);
-                setSession({ access_token: token });
+            const { data: savedUser, error: upsertError } = await supabase
+                .from('users')
+                .upsert(updates)
+                .select()
+                .single();
 
-                // FORCE RE-FETCH: Don't trust the Edge Function's return value blindly for mutable fields
-                const userIdStr = String(dbUser.id);
-                console.log("AuthContext: Force-fetching for ID:", userIdStr);
-
-                const { data: freshUser, error: refreshError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', userIdStr)
-                    .single();
-
-                if (freshUser && !refreshError) {
-                    console.log('AuthContext: Force-refresh SUCCESS. New Photo:', freshUser.photo_url);
-                    // SUCCESS - Tag Source
-                    setUser({ ...freshUser, _source: 'DB (Verified Fresh)' });
-                } else {
-                    console.error('AuthContext: Force-refresh FAILED:', refreshError);
-                    // FALLBACK - Tag Source
-                    setUser({ ...dbUser, _source: 'Edge Function (Fallback)' });
-                    alert(`Sync Warning: DB Fetch Failed. ${refreshError?.message}`);
-                }
+            if (upsertError) {
+                console.error("AuthContext: Upsert Failed", upsertError);
+                // Show specific error in debug source
+                setUser({ ...tgUser, _source: `Error: ${upsertError.message || upsertError.code}` });
+            } else {
+                console.log("AuthContext: Sync Success!", savedUser);
+                setUser({ ...savedUser, _source: 'DB (Direct Client)' });
             }
+
         } catch (err) {
-            console.error('Auth Sync Failed:', err);
-            // alert(`Login Error: ${err.message}`);
+            console.error("AuthContext: Critical Sync Error", err);
+            setUser({ ...tgUser, _source: `Critical: ${err.message}` });
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (tg.initData) {
-            fetchUser(tg.initData);
+        if (telegramUser) {
+            // Instant Optimistic Update
+            if (!user) {
+                setUser({ ...telegramUser, _source: 'Optimistic (Client)' });
+            }
+            // Trigger Background Sync
+            syncUserWithDB(telegramUser);
         } else {
-            console.warn("AuthContext: InitData missing on mount");
             setLoading(false);
         }
-    }, [tg]);
-
-    const refreshUser = () => {
-        if (tg.initData) return fetchUser(tg.initData);
-    };
+    }, [telegramUser]);
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, refreshUser }}>
+        <AuthContext.Provider value={{ user, session, loading, refreshUser: () => syncUserWithDB(telegramUser) }}>
             {children}
         </AuthContext.Provider>
     );

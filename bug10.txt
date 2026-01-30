@@ -2,6 +2,8 @@ supabase api ve diğer bilgiler:
 
 project url supabase: https://shwpblroitsxezihnaut.supabase.co
 
+project token:  sbp_542d351c801227dfd3d781396c07a9072b68bc44
+
 Publishable key
 This key is safe to use in a browser if you have enabled Row Level Security (RLS) for your tables and configured policies.: name: default , api key:  sb_publishable_zZ7lKg1pdMpclA1oKBKP-w_P6olQzWX
 
@@ -11,10 +13,9 @@ These API keys allow privileged access to your project's APIs. Use in servers, f
 anon public: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod3BibHJvaXRzeGV6aWhuYXV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1ODU5MjYsImV4cCI6MjA4NTE2MTkyNn0.apZIGddJI_eOZxpq5pQTW8_EOfl_A517f_0djGq86Dw
 service role: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod3BibHJvaXRzeGV6aWhuYXV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTU4NTkyNiwiZXhwIjoyMDg1MTYxOTI2fQ.0BsRuXRQURc1WDeU-7Wbm6MXJMxFXGhHu66HnxAe7ho
 
-telegram api be bot bilgileri:
+telegram api ve bot bilgileri:
 
 App api_id: 39515914
 App api_hash: a095ee324a93e0c0e2e955dffc4b505a
 
-Telegram bot token @HappiTelegram_bot :
-  8596658203:AAEI0hQ1tQmz6WxFtlq5grXyDMRuio6N8PI
+Telegram bot token @HappiTelegram_bot : 8596658203:AAEI0hQ1tQmz6WxFtlq5grXyDMRuio6N8PI
