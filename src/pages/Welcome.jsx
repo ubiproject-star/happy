@@ -420,6 +420,12 @@ export default function Welcome() {
                     </span>
                 </div>
 
+                {/* VISUAL DEBUGGER FOR WELCOME PAGE */}
+                <div className="absolute bottom-12 left-0 w-full p-2 bg-black/80 text-[10px] text-green-400 font-mono z-50 pointer-events-none">
+                    <p>User ID: {user?.id} ({typeof user?.id})</p>
+                    <p>Photo URL: {user?.photo_url || 'NONE'}</p>
+                </div>
+
             </main>
         </Layout>
     );
