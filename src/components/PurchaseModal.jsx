@@ -1,12 +1,17 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Check, X, Crown, Sparkles } from 'lucide-react';
+import { Star, Check, X, Crown, Sparkles, Loader2 } from 'lucide-react';
 import pixelHeart from '../assets/pixel-heart.png';
 import { useLanguage } from '../contexts/LanguageContext';
+import { supabase } from '../lib/supabase';
+import useTelegram from '../hooks/useTelegram';
 
 export default function PurchaseModal({ onClose, onPurchase }) {
     const { t } = useLanguage();
+    const { tg } = useTelegram();
     const [selectedId, setSelectedId] = useState('supernova');
+    const [isLoading, setIsLoading] = useState(false);
 
     const PACKAGES = [
         {
@@ -16,7 +21,6 @@ export default function PurchaseModal({ onClose, onPurchase }) {
             price: 1000,
             save: null,
             badge: null,
-            color: 'cyan',
             features: [
                 `100 ${t('credits')}`,
                 '2x Visibility',
@@ -32,7 +36,6 @@ export default function PurchaseModal({ onClose, onPurchase }) {
             price: 2500,
             save: 'Smart Choice',
             badge: 'POPULAR',
-            color: 'indigo',
             features: [
                 `250 ${t('credits')}`,
                 'Top Tier Visibility',
@@ -48,7 +51,6 @@ export default function PurchaseModal({ onClose, onPurchase }) {
             price: 5000,
             save: 'SAVE 50%',
             badge: 'BEST VALUE',
-            color: 'purple',
             features: [
                 `1000 ${t('credits')}`,
                 'Top Tier Visibility',
@@ -60,6 +62,58 @@ export default function PurchaseModal({ onClose, onPurchase }) {
     ];
 
     const selectedPackage = PACKAGES.find(p => p.id === selectedId) || PACKAGES[2];
+
+    const handleBuy = async () => {
+        setIsLoading(true);
+        try {
+            console.log("Creating invoice for:", selectedPackage.title);
+
+            const { data, error } = await supabase.functions.invoke('create-invoice', {
+                body: {
+                    title: `Happi ${selectedPackage.title}`,
+                    description: `${selectedPackage.rights} search credits + premium features`,
+                    price: selectedPackage.price,
+                    // Payload helps us identify the package on the webhook side if needed
+                    payload: JSON.stringify({
+                        package_id: selectedPackage.id,
+                        credits: selectedPackage.rights
+                    }),
+                    photo_url: "https://shwpblroitsxezihnaut.supabase.co/storage/v1/object/public/assets/premium_badge.png" // Optional
+                }
+            });
+
+            if (error) throw error;
+
+            const invoiceLink = data.result;
+            console.log("Invoice Link:", invoiceLink);
+
+            if (invoiceLink) {
+                // Use Telegram SDK to open invoice
+                tg.openInvoice(invoiceLink, (status) => {
+                    console.log("Invoice Status:", status);
+                    if (status === 'paid') {
+                        console.log("Payment Successful!");
+                        tg.close(); // Close App or just Modal? Maybe just modal
+                        onPurchase(selectedPackage.rights); // Optimistic Update
+                        onClose();
+                    } else if (status === 'cancelled' || status === 'failed') {
+                        console.log("Payment Cancelled");
+                        setIsLoading(false);
+                    } else {
+                        setIsLoading(false);
+                    }
+                });
+            } else {
+                console.error("No invoice link returned");
+                setIsLoading(false);
+            }
+
+        } catch (err) {
+            console.error('Payment Error:', err);
+            alert('Payment creation failed. Please try again.');
+            setIsLoading(false);
+        }
+    };
 
     return (
         <AnimatePresence>
@@ -166,7 +220,6 @@ export default function PurchaseModal({ onClose, onPurchase }) {
                                         <Check size={16} className="text-white" />
                                     </div>
                                 ))}
-                                {/* Static filler features to match look if needed, or stick to dynamic */}
                             </div>
                         </div>
 
@@ -175,10 +228,18 @@ export default function PurchaseModal({ onClose, onPurchase }) {
                     {/* Fixed Footer Button */}
                     <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#121214] via-[#121214] to-transparent z-10">
                         <button
-                            onClick={() => onPurchase(selectedPackage.rights)}
-                            className="w-full py-4 rounded-xl bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-colors shadow-lg active:scale-95"
+                            onClick={handleBuy}
+                            disabled={isLoading}
+                            className={`w-full py-4 rounded-xl bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2 ${isLoading ? 'opacity-80' : ''}`}
                         >
-                            Pay {selectedPackage.price} Stars
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="animate-spin" size={20} />
+                                    Processing...
+                                </>
+                            ) : (
+                                `Pay ${selectedPackage.price} Stars`
+                            )}
                         </button>
                     </div>
 
