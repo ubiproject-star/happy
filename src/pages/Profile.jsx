@@ -199,19 +199,6 @@ export default function Profile() {
                             />
                         </div>
 
-                        {/* Photo URL (Manual Input) */}
-                        <div className="space-y-2">
-                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
-                                <ExternalLink size={14} /> {t('photo_url') || 'Photo Link'}
-                            </label>
-                            <input
-                                value={profile.photo_url}
-                                onChange={(e) => setProfile({ ...profile, photo_url: e.target.value })}
-                                placeholder="https://..."
-                                className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/10 text-white font-mono text-xs truncate focus:ring-1 focus:ring-neon-blue outline-none"
-                            />
-                        </div>
-
                         {/* Age (Direct Int) */}
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1">

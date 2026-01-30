@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }) => {
     }, [telegramUser]);
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, refreshUser: () => syncUserWithDB(telegramUser) }}>
+        <AuthContext.Provider value={{ user, session, loading, refreshUser: () => syncUserWithDB(telegramUser), updateUser: setUser }}>
             {children}
         </AuthContext.Provider>
     );

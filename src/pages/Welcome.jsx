@@ -174,7 +174,7 @@ const AuroraBackground = () => (
 // --- Main Page Component ---
 
 export default function Welcome() {
-    const { user } = useAuth(); // Gets DB user with updated photo
+    const { user, updateUser } = useAuth(); // Gets DB user with updated photo
     const navigate = useNavigate();
     const { playSound, initAudio, muted, toggleMute, nextTrack, prevTrack } = useSound();
     const { t } = useLanguage();
@@ -192,20 +192,19 @@ export default function Welcome() {
     const credits = user?.coins !== undefined ? user.coins : 0;
 
     const handlePurchase = async (amount) => {
-        // Optimistic UI update is risky here, better to trust the refresh
-        // In real app: Call Payment API -> Webhook -> DB Update -> Realtime Sub update
-        // For now: Simulate purchase by updating DB directly (Ghost Mode)
         if (!user?.id) return;
 
         const newAmount = credits + amount;
 
+        // 1. Optimistic Update
+        updateUser({ ...user, coins: newAmount });
+
+        // 2. DB Update
         await supabase
             .from('users')
             .update({ coins: newAmount })
             .eq('id', user.id);
 
-        // Trigger context refresh
-        window.location.reload(); // Simple refresh to get new state or use refreshUser()
         setShowPurchaseModal(false);
         playSound('match');
     };
@@ -255,19 +254,24 @@ export default function Welcome() {
 
         if (spinning || matches.length === 0) return;
 
-        // 2. DEDUCT CREDIT (DB Transaction)
-        // We do this immediately to prevent free spins glitch
-        if (user?.id) {
-            const { error } = await supabase
-                .from('users')
-                .update({ coins: credits - 1 })
-                .eq('id', user.id);
+        // 2. DEDUCT CREDIT (Optimistic + DB)
+        const newCredits = credits - 1;
 
-            if (error) {
-                console.error("Coin Deduct Failed", error);
-                // Optional: Show error
-                return;
-            }
+        // A) Optimistic UI Update (Instant)
+        updateUser({ ...user, coins: newCredits });
+
+        // B) DB Update (Background)
+        if (user?.id) {
+            supabase
+                .from('users')
+                .update({ coins: newCredits })
+                .eq('id', user.id)
+                .then(({ error }) => {
+                    if (error) {
+                        console.error("Coin Deduct Failed", error);
+                        // Rollback if needed, but rarely happens
+                    }
+                });
         }
 
         setSpinning(true);
