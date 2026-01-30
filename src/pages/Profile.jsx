@@ -31,20 +31,52 @@ export default function Profile() {
         bio: dbUser?.bio || ''
     });
 
-    // Sync state when dbUser changes (e.g. after refreshUser)
+    // 1. Fetch Profile on Mount (Direct DB Verification)
     useEffect(() => {
-        if (dbUser) {
-            setProfile(prev => ({
-                ...prev,
-                first_name: dbUser.first_name || prev.first_name,
-                photo_url: dbUser.photo_url || prev.photo_url,
-                instagram_handle: dbUser.instagram_handle || prev.instagram_handle,
-                gender: dbUser.gender || prev.gender,
-                orientation: dbUser.interested_in || prev.orientation,
-                region: dbUser.region || prev.region,
-                age: dbUser.birth_year ? new Date().getFullYear() - dbUser.birth_year : prev.age,
-                bio: dbUser.bio || prev.bio
-            }));
+        const fetchProfile = async () => {
+            if (!tgUser?.id) return;
+            const myId = tgUser.id.toString();
+
+            console.log("Fetching profile for ID:", myId);
+
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', myId)
+                    .single();
+
+                if (error) {
+                    console.error("Direct Fetch Error:", error);
+                }
+
+                if (data) {
+                    console.log("Direct DB Data:", data);
+                    setProfile(prev => ({
+                        ...prev,
+                        first_name: data.first_name || '',
+                        photo_url: data.photo_url || '',
+                        instagram_handle: data.instagram_handle || '',
+                        gender: data.gender || 'man',
+                        orientation: data.interested_in || 'female',
+                        region: data.region || 'Europe',
+                        age: data.birth_year ? new Date().getFullYear() - data.birth_year : 24,
+                        bio: data.bio || ''
+                    }));
+                }
+            } catch (err) {
+                console.error("Fetch Exception:", err);
+            }
+        };
+
+        fetchProfile();
+    }, [tgUser]);
+
+    // Sync state when dbUser changes (Backup)
+    useEffect(() => {
+        if (dbUser && !loading) {
+            // Optional: You can keep this or remove it if Direct Fetch is preferred. 
+            // Letting Direct Fetch take precedence for now to ensure DB truth.
         }
     }, [dbUser]);
 
@@ -54,6 +86,7 @@ export default function Profile() {
         setLoading(true);
 
         try {
+            const myId = tgUser.id.toString();
             const updates = {
                 first_name: profile.first_name,
                 photo_url: profile.photo_url,
@@ -68,7 +101,7 @@ export default function Profile() {
 
             const { error } = await supabase
                 .from('users')
-                .upsert({ id: tgUser.id, ...updates });
+                .upsert({ id: myId, ...updates });
 
             if (error) {
                 console.error("Supabase UPSERT Error Detailed:", JSON.stringify(error, null, 2));
@@ -356,6 +389,13 @@ export default function Profile() {
                         </motion.button>
 
                     </motion.div>
+                </div>
+
+                {/* DEBUG SECTION - REMOVE BEFORE PRODUCTION */}
+                <div className="mt-12 p-4 bg-black/50 text-[10px] font-mono text-gray-500 overflow-x-auto rounded-xl border border-white/5">
+                    <p>TG ID: {tgUser?.id} ({typeof tgUser?.id})</p>
+                    <p>DB Photo: {profile.photo_url?.substring(0, 30)}...</p>
+                    <p>Is Loading: {loading ? 'Yes' : 'No'}</p>
                 </div>
             </div>
         </Layout>
