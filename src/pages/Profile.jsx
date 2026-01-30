@@ -17,6 +17,7 @@ export default function Profile() {
 
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [saved, setSaved] = useState(false);
 
     // Initial State - Sync with Schema V4
     const [profile, setProfile] = useState({
@@ -76,8 +77,11 @@ export default function Profile() {
                 throw error;
             }
 
-            alert(t('saved_success') || 'Profile Saved!');
-            alert(t('saved_success') || 'Profile Saved!');
+            // alert(t('saved_success') || 'Profile Saved!'); // Removed as per request
+
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+
             await refreshUser(); // Refresh Context (AWAIT IT)
         } catch (error) {
             console.error('Save Failed:', error);
@@ -269,14 +273,25 @@ export default function Profile() {
                         </div>
 
                         {/* Save */}
+                        {/* Save */}
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={handleSave}
                             disabled={loading}
-                            className="w-full py-4 rounded-full font-black tracking-widest uppercase text-sm bg-white text-black hover:bg-neon-blue hover:text-black shadow-lg flex items-center justify-center gap-3 mt-8"
+                            className={`w-full py-4 rounded-full font-black tracking-widest uppercase text-sm shadow-lg flex items-center justify-center gap-3 mt-8 transition-all duration-300
+                                ${saved
+                                    ? 'bg-green-500 text-black'
+                                    : 'bg-white text-black hover:bg-neon-blue hover:text-black'}
+                            `}
                         >
-                            {loading ? <span className="animate-pulse">Saving...</span> : <><Sparkles size={18} /> {t('update')}</>}
+                            {loading ? (
+                                <span className="animate-pulse">Saving...</span>
+                            ) : saved ? (
+                                <>✅ {t('saved_success') || 'SAVED!'}</>
+                            ) : (
+                                <><Sparkles size={18} /> {t('update')}</>
+                            )}
                         </motion.button>
 
                         {/* Language Selector */}
