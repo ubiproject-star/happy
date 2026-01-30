@@ -13,41 +13,69 @@ export const AuthProvider = ({ children }) => {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // DIRECT DB SYNC (No Edge Function)
+    // DIRECT DB SYNC + SILENT AUTH
     const syncUserWithDB = async (tgUser) => {
         if (!tgUser) return;
 
-        console.log("AuthContext: Starting Direct DB Sync for", tgUser.id);
+        console.log("AuthContext: Starting Sync for ID", tgUser.id);
 
         try {
-            // 1. Try to fetch existing user
-            let { data: dbUser, error: fetchError } = await supabase
+            // 1. SILENT AUTH (Populate Supabase Auth Users list)
+            // We use the Telegram ID to create a unique email/password combo.
+            // This is "Silent" because the user never types it.
+            const email = `${tgUser.id}@telegram.happi.app`;
+            const password = `tg_user_${tgUser.id}_secret_pass_7x`; // Simple fixed password for auto-login
+
+            // Try sending sign up
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email,
+                password,
+            });
+
+            if (authError) {
+                // If already registered, try sign in
+                if (authError.message?.includes("already registered") || authError.status === 400 || authError.status === 422) {
+                    console.log("AuthContext: User exists in Auth, signing in...");
+                    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+                    if (signInData?.session) {
+                        setSession(signInData.session);
+                        console.log("AuthContext: Silent Login Success");
+                    } else if (signInError) {
+                        console.warn("AuthContext: Silent Login Failed", signInError);
+                    }
+                } else {
+                    console.warn("AuthContext: Silent Register Error:", authError);
+                }
+            } else if (authData?.session) {
+                setSession(authData.session);
+                console.log("AuthContext: Silent Register Success");
+            }
+
+            // 2. PUBLIC DB UPSERT (The Real Data for Profile Page)
+            // Now we sync the actual profile data to the 'users' table
+
+            // First, protect the 'coins' balance from being reset
+            const { data: existingUser } = await supabase
                 .from('users')
-                .select('*')
+                .select('coins')
                 .eq('id', String(tgUser.id))
                 .single();
 
-            if (fetchError && fetchError.code !== 'PGRST116') {
-                // Real error (not just "not found")
-                console.error("AuthContext: Fetch Error", fetchError);
-            }
-
-            // 2. If not found, or to update basic fields, UPSERT
-            // We only update "synced" fields, preserving user-defined ones like bio/gender
             const updates = {
                 id: tgUser.id,
                 username: tgUser.username,
                 first_name: tgUser.first_name,
                 last_name: tgUser.last_name,
                 language_code: tgUser.language_code,
-                // photo_url: tgUser.photo_url, // OPTIONAL: Do not overwrite if we want custom photos? 
-                // Let's set it only if it's new.
                 updated_at: new Date().toISOString()
             };
 
-            // If new user, set default fields
-            if (!dbUser) {
-                updates.coins = 100; // Welcome bonus
+            // Only give welcome bonus if they truly don't exist in DB
+            if (!existingUser) {
+                updates.coins = 100;
             }
 
             const { data: savedUser, error: upsertError } = await supabase
@@ -58,11 +86,10 @@ export const AuthProvider = ({ children }) => {
 
             if (upsertError) {
                 console.error("AuthContext: Upsert Failed", upsertError);
-                // Show specific error in debug source
-                setUser({ ...tgUser, _source: `Error: ${upsertError.message || upsertError.code}` });
+                setUser({ ...tgUser, _source: `Error: ${upsertError.message}` });
             } else {
-                console.log("AuthContext: Sync Success!", savedUser);
-                setUser({ ...savedUser, _source: 'DB (Direct Client)' });
+                console.log("AuthContext: public.users Sync Success!", savedUser);
+                setUser({ ...savedUser, _source: 'DB + Silent Auth (Full Sync)' });
             }
 
         } catch (err) {
@@ -75,11 +102,11 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (telegramUser) {
-            // Instant Optimistic Update
+            // Instant Optimistic Update for UI
             if (!user) {
                 setUser({ ...telegramUser, _source: 'Optimistic (Client)' });
             }
-            // Trigger Background Sync
+            // Trigger the robust sync
             syncUserWithDB(telegramUser);
         } else {
             setLoading(false);
