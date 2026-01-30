@@ -14,15 +14,33 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     const fetchUser = async (initData) => {
-        if (!initData) return;
+        if (!initData) {
+            console.warn("AuthContext: No initData available");
+            setLoading(false);
+            return;
+        }
+
         try {
+            console.log("AuthContext: invoking auth-telegram...");
             const { data, error } = await supabase.functions.invoke('auth-telegram', {
                 body: { initData },
             });
-            if (error) throw error;
+
+            if (error) {
+                console.error("AuthContext: Edge Function Error:", error);
+                throw error;
+            }
+
             const { token, user: dbUser } = data;
+
+            if (!dbUser || !dbUser.id) {
+                console.error("AuthContext: No user returned from Edge Function", data);
+                throw new Error("Invalid response from auth-telegram");
+            }
+
             if (token) {
                 supabase.realtime.setAuth(token);
+                setSession({ access_token: token });
 
                 // FORCE RE-FETCH: Don't trust the Edge Function's return value blindly for mutable fields
                 const userIdStr = String(dbUser.id);
@@ -41,24 +59,29 @@ export const AuthProvider = ({ children }) => {
                     console.error('AuthContext: Force-refresh FAILED:', refreshError);
                     // Fallback to the edge function data, but warn
                     setUser(dbUser);
-                    alert("Warning: Profile sync might be delayed. Please reload.");
+                    // alert("Warning: Profile sync delayed (DB Fetch Failed)");
                 }
-
-                setSession({ access_token: token });
             }
         } catch (err) {
             console.error('Auth Sync Failed:', err);
+            // alert(`Login Error: ${err.message}`);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (tg.initData) fetchUser(tg.initData);
-        else setLoading(false);
+        if (tg.initData) {
+            fetchUser(tg.initData);
+        } else {
+            console.warn("AuthContext: InitData missing on mount");
+            setLoading(false);
+        }
     }, [tg]);
 
-    const refreshUser = () => fetchUser(tg.initData);
+    const refreshUser = () => {
+        if (tg.initData) return fetchUser(tg.initData);
+    };
 
     return (
         <AuthContext.Provider value={{ user, session, loading, refreshUser }}>
