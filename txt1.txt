@@ -1,0 +1,19 @@
+Değerli dostum sayende simdi kullanicı kayıtları alınıyor. 
+
+Şimdi sırayla;
+
+1) Database değiskenlerinde yapmanı istediğim degisiklikler var;
+
+Bunları sil: bio text, last_name text
+Değiştir; birth_year text yerine "age text"
+
+'username text' olanları otomatik telegram linkine ekle ve tıklayınca profiline yönlendir
+
+'instagram_handle text' kısmına username yazanları otomatik instagram linkine ekle ve tıklayınca instagram profillerine yönlendir
+
+'first_name text' otomatik çekmeye devam et ama ayrıca kullanıcıya değiştirme seçeneğinide aktifleştir profil sayfasında
+
+'coins int4' sanırım bu buton hakkı, bunu yeni hesap oluşturan herkeste 3 yap ve sıfırlanınca paket alımına yönlendir butonlardan. Şuan ki aktif kullanıcılarda ki coinleri sil ve 3 yap hepsinde. Paket alımı yaptıkça buraya buton adetini eklersin
+
+
+2) Matches algoritmasını yeniden gözden geçir ve 'gender' <> 'interested in' değişkenleri arasında daha önce konuştuğumuz kombinasyonlar belirle ve swiping, matching adımlarına sabitle.

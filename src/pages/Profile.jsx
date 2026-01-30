@@ -3,23 +3,22 @@ import { motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
-import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send, Languages, Loader2 } from 'lucide-react';
+import { Camera, Sparkles, User, Calendar, Heart, Globe, Instagram, Send, Languages, Loader2, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
-    const { user: dbUser, refreshUser, loading: authLoading } = useAuth(); // Use DB User
+    const { user: dbUser, refreshUser } = useAuth();
     const { t, language } = useLanguage();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    // Initial State - Prefer DB User data significantly
+    // Initial State - Sync with Schema V4
     const [profile, setProfile] = useState({
         first_name: dbUser?.first_name || tgUser?.first_name || '',
         photo_url: dbUser?.photo_url || tgUser?.photo_url || '',
@@ -27,56 +26,22 @@ export default function Profile() {
         gender: dbUser?.gender || 'man',
         orientation: dbUser?.interested_in || 'female',
         region: dbUser?.region || 'Europe',
-        age: dbUser?.birth_year ? new Date().getFullYear() - dbUser?.birth_year : 24,
-        bio: dbUser?.bio || ''
+        age: dbUser?.age || 24, // Direct Age
     });
 
-    // 1. Fetch Profile on Mount (Direct DB Verification)
+    // 1. Update form when DB user loads
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (!tgUser?.id) return;
-            const myId = tgUser.id.toString();
-
-            console.log("Fetching profile for ID:", myId);
-
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', myId)
-                    .single();
-
-                if (error) {
-                    console.error("Direct Fetch Error:", error);
-                }
-
-                if (data) {
-                    console.log("Direct DB Data:", data);
-                    setProfile(prev => ({
-                        ...prev,
-                        first_name: data.first_name || '',
-                        photo_url: data.photo_url || '',
-                        instagram_handle: data.instagram_handle || '',
-                        gender: data.gender || 'man',
-                        orientation: data.interested_in || 'female',
-                        region: data.region || 'Europe',
-                        age: data.birth_year ? new Date().getFullYear() - data.birth_year : 24,
-                        bio: data.bio || ''
-                    }));
-                }
-            } catch (err) {
-                console.error("Fetch Exception:", err);
-            }
-        };
-
-        fetchProfile();
-    }, [tgUser]);
-
-    // Sync state when dbUser changes (Backup)
-    useEffect(() => {
-        if (dbUser && !loading) {
-            // Optional: You can keep this or remove it if Direct Fetch is preferred. 
-            // Letting Direct Fetch take precedence for now to ensure DB truth.
+        if (dbUser) {
+            setProfile(prev => ({
+                ...prev,
+                first_name: dbUser.first_name || prev.first_name,
+                photo_url: dbUser.photo_url || prev.photo_url,
+                instagram_handle: dbUser.instagram_handle || '',
+                gender: dbUser.gender || 'man',
+                orientation: dbUser.interested_in || 'female',
+                region: dbUser.region || 'Europe',
+                age: dbUser.age || 24
+            }));
         }
     }, [dbUser]);
 
@@ -87,32 +52,35 @@ export default function Profile() {
 
         try {
             const myId = tgUser.id.toString();
+
+            // Schema V4 Updates
             const updates = {
-                first_name: profile.first_name,
+                first_name: profile.first_name, // Now Editable
                 photo_url: profile.photo_url,
                 instagram_handle: profile.instagram_handle,
                 gender: profile.gender,
-                interested_in: profile.orientation, // Mapping back
+                interested_in: profile.orientation,
                 region: profile.region,
-                birth_year: new Date().getFullYear() - parseInt(profile.age),
-                bio: profile.bio,
+                age: parseInt(profile.age), // INTEGER
                 updated_at: new Date()
             };
 
+            // Use the Service Role Client from AuthContext if possible, or standard.
+            // Standard is fine if RLS allows it (which it does via 'true' policy currently)
             const { error } = await supabase
                 .from('users')
                 .upsert({ id: myId, ...updates });
 
             if (error) {
-                console.error("Supabase UPSERT Error Detailed:", JSON.stringify(error, null, 2));
-                alert(`DB Error: ${error.message} (Code: ${error.code})`);
+                console.error("Supabase Save Error:", error);
                 throw error;
             }
 
-            alert(t('saved_success') || 'Profile Saved Successfully!');
+            alert(t('saved_success') || 'Profile Saved!');
+            refreshUser(); // Refresh Context
         } catch (error) {
-            console.error('CRITICAL Error updating profile:', error);
-            // alert('Failed to save profile.'); // Handled above
+            console.error('Save Failed:', error);
+            alert(`Error: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -120,9 +88,7 @@ export default function Profile() {
 
     // 3. Handle Image Upload
     const handleImageUpload = async (event) => {
-        if (!event.target.files || event.target.files.length === 0) {
-            return;
-        }
+        if (!event.target.files || event.target.files.length === 0) return;
 
         try {
             setUploading(true);
@@ -131,25 +97,19 @@ export default function Profile() {
             const fileName = `${tgUser?.id || 'unknown'}/${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
 
-            // Upload to 'avatars' bucket
             const { error: uploadError } = await supabase.storage
                 .from('avatars')
                 .upload(filePath, file);
 
-            if (uploadError) {
-                throw uploadError;
-            }
+            if (uploadError) throw uploadError;
 
-            // Get Public URL
             const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
             if (data) {
                 setProfile(prev => ({ ...prev, photo_url: data.publicUrl }));
             }
-
         } catch (error) {
-            console.error('Upload Error:', error);
-            alert('Error uploading image: ' + error.message);
+            alert('Upload Failed: ' + error.message);
         } finally {
             setUploading(false);
         }
@@ -160,7 +120,6 @@ export default function Profile() {
     const ORIENTATION_OPTIONS = ['male', 'female', 'lesbian', 'gay', 'bisexual'];
     const REGION_OPTIONS = ['North America', 'Asia', 'Europe', 'Africa', 'Middle East', 'South America'];
 
-    // ... (SelectionGrid Component remains the same)
     const SelectionGrid = ({ label, icon: Icon, options, value, onChange, translateOption = false }) => (
         <div className="space-y-3">
             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-blue uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]">
@@ -191,20 +150,17 @@ export default function Profile() {
     return (
         <Layout>
             <LiveBackground />
-
             <div className="relative z-10 min-h-screen pb-24 px-4 pt-4 md:pt-10 font-sans text-stone-200">
 
-                {/* Header Title */}
+                {/* Header */}
                 <div className="text-center mb-8 glass py-4 rounded-2xl border border-white/10">
-                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent drop-shadow-sm">
+                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
                         {t('profile_title')}
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-1 uppercase">{t('configure_profile')}</p>
                 </div>
 
                 <div className="max-w-md mx-auto space-y-8">
-
-                    {/* AVATAR: Uploadable */}
+                    {/* AVATAR */}
                     <div className="flex justify-center">
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-full p-[2px] bg-gradient-to-tr from-neon-blue to-neon-purple shadow-[0_0_30px_rgba(0,243,255,0.2)]">
@@ -217,185 +173,120 @@ export default function Profile() {
                                         src={profile.photo_url || `https://i.pravatar.cc/300?u=${tgUser?.id}`}
                                         alt="Profile"
                                         className="w-full h-full rounded-full object-cover border-4 border-[#0a0a0a]"
-                                        onError={(e) => e.target.src = `https://i.pravatar.cc/300?u=${tgUser?.id}`}
                                     />
                                 )}
                             </div>
-
-                            {/* Hidden File Input + Label Trigger */}
-                            <label className="absolute bottom-0 right-0 p-2 bg-[#1a1a1a] text-neon-blue rounded-full border border-neon-blue/30 shadow-lg hover:scale-110 transition-transform cursor-pointer">
+                            <label className="absolute bottom-0 right-0 p-2 bg-[#1a1a1a] text-neon-blue rounded-full border border-neon-blue/30 shadow-lg cursor-pointer">
                                 <Camera size={16} />
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    disabled={uploading}
-                                />
+                                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
                             </label>
                         </div>
                     </div>
 
-                    {/* FORM GRID */}
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        className="space-y-8 p-6 glass rounded-3xl border border-white/5"
-                    >
-                        {/* Name (Read Only) */}
-                        <div className="space-y-2 opacity-60">
+                    {/* FORM */}
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="space-y-8 p-6 glass rounded-3xl border border-white/5">
+
+                        {/* Name (Editable) */}
+                        <div className="space-y-2">
                             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
-                                <User size={14} /> Name
+                                <User size={14} /> {t('name') || 'Name'}
                             </label>
                             <input
                                 value={profile.first_name}
-                                disabled
-                                className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/5 text-gray-400 font-mono text-sm"
+                                onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                                className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/10 text-white font-bold"
                             />
                         </div>
 
-                        {/* Language Selector Link */}
-                        <div className="space-y-2">
-                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
-                                <Languages size={14} /> Language
-                            </label>
-                            <button
-                                onClick={() => navigate('/language')}
-                                className="w-full p-4 rounded-xl bg-[#1a1a1a] border border-white/10 text-white font-bold text-left flex justify-between items-center hover:bg-[#252525] transition-colors"
-                            >
-                                <span>{language ? language.toUpperCase() : 'Select'}</span>
-                                <Globe size={16} className="text-gray-500" />
-                            </button>
-                        </div>
-
+                        {/* Age (Direct Int) */}
                         <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-purple uppercase ml-1">
                                 <Calendar size={14} /> {t('age')}
                             </label>
                             <input
                                 type="number"
                                 value={profile.age}
                                 onChange={(e) => setProfile({ ...profile, age: e.target.value })}
-                                className="
-                                    w-full p-4 rounded-xl 
-                                    bg-[#1a1a1a] border border-white/10 
-                                    text-white font-bold text-center tracking-widest
-                                    focus:border-neon-purple focus:shadow-[0_0_20px_rgba(168,85,247,0.2)]
-                                    outline-none transition-all duration-300
-                                "
+                                className="w-full p-4 rounded-xl bg-[#1a1a1a] border border-white/10 text-white font-bold text-center tracking-widest focus:border-neon-purple outline-none"
                             />
                         </div>
 
-                        {/* Variables Grid */}
-                        <SelectionGrid
-                            label={t('gender')}
-                            icon={User}
-                            options={GENDER_OPTIONS}
-                            value={profile.gender}
-                            onChange={(val) => setProfile({ ...profile, gender: val })}
-                            translateOption={true}
-                        />
+                        {/* Gender & Orientation */}
+                        <SelectionGrid label={t('gender')} icon={User} options={GENDER_OPTIONS} value={profile.gender} onChange={(val) => setProfile({ ...profile, gender: val })} translateOption={true} />
+                        <SelectionGrid label={t('orientation')} icon={Heart} options={ORIENTATION_OPTIONS} value={profile.orientation} onChange={(val) => setProfile({ ...profile, orientation: val })} translateOption={true} />
+                        <SelectionGrid label={t('region')} icon={Globe} options={REGION_OPTIONS} value={profile.region} onChange={(val) => setProfile({ ...profile, region: val })} translateOption={false} />
 
-                        <SelectionGrid
-                            label={t('orientation')}
-                            icon={Heart}
-                            options={ORIENTATION_OPTIONS}
-                            value={profile.orientation}
-                            onChange={(val) => setProfile({ ...profile, orientation: val })}
-                            translateOption={true}
-                        />
-
-                        <SelectionGrid
-                            label={t('region')}
-                            icon={Globe}
-                            options={REGION_OPTIONS}
-                            value={profile.region}
-                            onChange={(val) => setProfile({ ...profile, region: val })}
-                            translateOption={false}
-                        />
-
-                        {/* Social Links Section */}
+                        {/* Social Links */}
                         <div className="space-y-4 pt-4 border-t border-white/5">
                             <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">Social Connections</h3>
+
                             {/* Instagram */}
-                            <div className="group space-y-2">
-                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#E1306C] uppercase ml-1 drop-shadow-[0_0_5px_rgba(225,48,108,0.5)]">
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#E1306C] uppercase ml-1">
                                     <Instagram size={14} /> Instagram
                                 </label>
-                                <div className="relative">
+                                <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        value={profile.instagram_handle || ''}
+                                        value={profile.instagram_handle}
                                         onChange={(e) => setProfile({ ...profile, instagram_handle: e.target.value })}
                                         placeholder="@username"
-                                        className="
-                                            w-full p-4 pl-12 rounded-xl 
-                                            bg-[#1a1a1a] border border-white/10 
-                                            text-white font-medium tracking-wide
-                                            focus:border-[#E1306C] focus:shadow-[0_0_15px_rgba(225,48,108,0.2)]
-                                            outline-none transition-all duration-300 placeholder-gray-600
-                                        "
+                                        className="flex-1 p-3 rounded-xl bg-[#1a1a1a] border border-white/10 text-white"
                                     />
-                                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#E1306C] transition-colors" size={18} />
+                                    {profile.instagram_handle && (
+                                        <a
+                                            href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="p-3 bg-[#E1306C]/20 text-[#E1306C] rounded-xl flex items-center justify-center border border-[#E1306C]/50"
+                                        >
+                                            <ExternalLink size={18} />
+                                        </a>
+                                    )}
                                 </div>
                             </div>
-                            {/* Telegram (Auto-Generated) */}
-                            <div className="group space-y-2">
-                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#0088cc] uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,136,204,0.5)]">
+
+                            {/* Telegram */}
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-[#0088cc] uppercase ml-1">
                                     <Send size={14} /> Telegram
                                 </label>
-                                <div className="relative opacity-80">
-                                    <input
-                                        type="text"
-                                        value={`https://t.me/${tgUser?.username || 'user'}`}
-                                        readOnly
-                                        disabled
-                                        className="
-                                            w-full p-4 pl-12 rounded-xl 
-                                            bg-[#0f0f0f] border border-white/5 
-                                            text-gray-400 font-mono text-sm tracking-wide
-                                            cursor-not-allowed select-none
-                                        "
-                                    />
-                                    <Send className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0088cc]" size={18} />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-600 uppercase tracking-widest border border-gray-800 px-2 py-1 rounded">Auto-Linked</span>
+                                <div className="flex gap-2">
+                                    <div className="flex-1 p-3 rounded-xl bg-[#0f0f0f] border border-white/5 text-gray-400 font-mono text-sm truncate">
+                                        @{tgUser?.username || 'user'}
+                                    </div>
+                                    <a
+                                        href={`https://t.me/${tgUser?.username}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="p-3 bg-[#0088cc]/20 text-[#0088cc] rounded-xl flex items-center justify-center border border-[#0088cc]/50"
+                                    >
+                                        <ExternalLink size={18} />
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Save Button */}
+                        {/* Save */}
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={handleSave}
                             disabled={loading}
-                            className={`
-                                w-full py-4 rounded-full font-black tracking-widest uppercase text-sm
-                                shadow-lg flex items-center justify-center gap-3 mt-8
-                                transition-all duration-300 border border-transparent
-                                ${loading
-                                    ? 'bg-stone-800 text-stone-500 cursor-wait'
-                                    : 'bg-white text-black hover:bg-neon-blue hover:text-black hover:shadow-[0_0_30px_rgba(0,243,255,0.4)]'}
-                            `}
+                            className="w-full py-4 rounded-full font-black tracking-widest uppercase text-sm bg-white text-black hover:bg-neon-blue hover:text-black shadow-lg flex items-center justify-center gap-3 mt-8"
                         >
-                            {loading ? (
-                                <span className="animate-pulse">Syncing...</span>
-                            ) : (
-                                <>
-                                    <Sparkles size={18} />
-                                    {t('update')}
-                                </>
-                            )}
+                            {loading ? <span className="animate-pulse">Saving...</span> : <><Sparkles size={18} /> {t('update')}</>}
                         </motion.button>
 
-                    </motion.div>
-                </div>
+                        {/* Language Selector */}
+                        <button
+                            onClick={() => navigate('/language')}
+                            className="w-full py-3 rounded-xl text-xs font-bold text-gray-500 uppercase flex items-center justify-center gap-2 hover:text-white transition-colors"
+                        >
+                            <Globe size={14} /> Language: {language?.toUpperCase()}
+                        </button>
 
-                {/* DEBUG SECTION - REMOVE BEFORE PRODUCTION */}
-                <div className="mt-12 p-4 bg-black/50 text-[10px] font-mono text-gray-500 overflow-x-auto rounded-xl border border-white/5">
-                    <p>TG ID: {tgUser?.id} ({typeof tgUser?.id})</p>
-                    <p>DB Photo: {profile.photo_url?.substring(0, 30)}...</p>
-                    <p>Is Loading: {loading ? 'Yes' : 'No'}</p>
+                    </motion.div>
                 </div>
             </div>
         </Layout>
