@@ -61,7 +61,7 @@ const SlotMachine = ({ currentMatch, spinning, onNavigate }) => (
                 {currentMatch ? (
                     <motion.img
                         key={currentMatch.id}
-                        src={currentMatch.avatar_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
+                        src={currentMatch.photo_url || `https://i.pravatar.cc/300?u=${currentMatch.id}`}
                         alt="Match"
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -185,38 +185,44 @@ export default function Welcome() {
     const [spinning, setSpinning] = useState(false);
     const [showMatchOverlay, setShowMatchOverlay] = useState(false);
 
-    // Credits System
+    // ONE SOURCE OF TRUTH: The Database User
     const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-    const [credits, setCredits] = useState(() => {
-        const saved = localStorage.getItem('searchCredits');
-        return saved !== null ? parseInt(saved, 10) : 3;
-    });
 
-    useEffect(() => {
-        localStorage.setItem('searchCredits', credits);
-    }, [credits]);
+    // Get coins directly from the authenticated DB user
+    const credits = user?.coins !== undefined ? user.coins : 0;
 
-    const handlePurchase = (amount) => {
-        setCredits(prev => prev + amount);
+    const handlePurchase = async (amount) => {
+        // Optimistic UI update is risky here, better to trust the refresh
+        // In real app: Call Payment API -> Webhook -> DB Update -> Realtime Sub update
+        // For now: Simulate purchase by updating DB directly (Ghost Mode)
+        if (!user?.id) return;
+
+        const newAmount = credits + amount;
+
+        await supabase
+            .from('users')
+            .update({ coins: newAmount })
+            .eq('id', user.id);
+
+        // Trigger context refresh
+        window.location.reload(); // Simple refresh to get new state or use refreshUser()
         setShowPurchaseModal(false);
-        playSound('match'); // Success sound
+        playSound('match');
     };
 
     // Initial Data Fetch
     useEffect(() => {
         const fetchUsers = async () => {
-            // Fallback ID for dev/testing if not logged in via Telegram
-            const myId = user?.id || 1001;
+            if (!user?.id) return;
 
-            console.log("Fetching compatible users for:", myId);
+            console.log("Fetching compatible users for:", user.id);
 
             // Use the RPC function to get tailored matches
             const { data, error } = await supabase
-                .rpc('get_compatible_users', { requesting_user_id: myId });
+                .rpc('get_compatible_users', { requesting_user_id: user.id });
 
             if (error) {
                 console.error("Matching Error:", error);
-                // Fallback to random if RPC fails (e.g. function not created yet)
                 const { data: fallback } = await supabase.from('users').select('*').limit(20);
                 if (fallback) setMatches(fallback.sort(() => 0.5 - Math.random()));
             } else if (data && data.length > 0) {
@@ -231,12 +237,6 @@ export default function Welcome() {
         };
 
         if (user) fetchUsers();
-        // If no user immediately, wait a bit or let auth settle. 
-        // But for now, we trigger if user exists or not (using fallback).
-        if (!user) {
-            // Try fetching anyway with fallback ID for testing
-            fetchUsers();
-        }
     }, [user]);
 
     // Provide a way to interact first
@@ -244,23 +244,35 @@ export default function Welcome() {
         initAudio();
     }, [initAudio]);
 
-    const handleSpin = useCallback(() => {
+    const handleSpin = async () => {
         handleInteractionStart();
 
-        // CHECK CREDITS
-        if (credits <= 0) {
+        // 1. CHECK CREDITS (DB Source)
+        if (credits < 1) {
             setShowPurchaseModal(true);
             return;
         }
 
         if (spinning || matches.length === 0) return;
 
-        // DECREMENT CREDIT
-        setCredits(prev => prev - 1);
+        // 2. DEDUCT CREDIT (DB Transaction)
+        // We do this immediately to prevent free spins glitch
+        if (user?.id) {
+            const { error } = await supabase
+                .from('users')
+                .update({ coins: credits - 1 })
+                .eq('id', user.id);
+
+            if (error) {
+                console.error("Coin Deduct Failed", error);
+                // Optional: Show error
+                return;
+            }
+        }
 
         setSpinning(true);
         setShowMatchOverlay(false);
-        playSound('power_click'); // Ultra Dopamine Start
+        playSound('power_click');
 
         let spinCount = 0;
         const maxSpins = 15;
