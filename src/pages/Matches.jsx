@@ -123,9 +123,9 @@ export default function Matches() {
 
     return (
         <Layout>
-            <div className="w-full min-h-full bg-black pb-32 pt-4 md:pt-10 font-sans overflow-x-hidden">
+            <div className="w-full h-full min-h-full bg-black pb-32 px-2 pt-4 md:pt-10 font-sans overflow-x-hidden box-border">
                 {/* Header */}
-                <div className="text-center mb-8 px-4">
+                <div className="text-center mb-8">
                     <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
                         {t('your_favorites')}
                     </h1>
@@ -133,7 +133,7 @@ export default function Matches() {
                 </div>
 
                 {/* 3-Column Grid */}
-                <div className="grid grid-cols-3 gap-1 px-1 w-full box-border">
+                <div className="grid grid-cols-3 gap-2">
                     {/* 1. Real Matches */}
                     {matches.map(({ match_id, user }, index) => (
                         <Link
