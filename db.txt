@@ -1,0 +1,34 @@
+UI & UX tamamdır şimdi backend ve Supabase database kurmalıyız ve şuan supabase proje sayfam bomboş. Bu konuda hiçbir bilgim yok o yüzden gerekirse Supabase hesabıma anahtarlarımdan eriş ve gerekli kurulumları yap. 
+
+Önemli notlar; 
+
+1) Supabase'in varsayılan kimlik doğrulama yöntemleri (Email/Şifre, Google Auth) Telegram Mini App içinde doğrudan kullanılamaz. Çünkü kullanıcı Telegram'a zaten giriş yapmıştır ve tekrar şifre girmesi istenmemelidir. Bu sorunu çözmek için "Özel JWT (JSON Web Token)" mekanizması kurulmalıdır. Ayrıca Telegram initData parametresini ayrıştıran ve React Context API içinde saklayan bir 'AuthProvider' bileşeni oluşturman gerekebilir.
+
+2) Kullanıci profilindeki değiskenleri DB ye kaydedecez, ödeme sıralamasını db ye kaydedecez, like (storage) bilgilerini db ye kaydedecez, fakat matching için sadece "gender ve interested in" değiskenlerini kullanacaz. Örneğin bu kullanıcılar butona basınca eşleşirler birbiriyle;
+
+User 1: gender: Man, interested in: female
+User 2: gender: Woman, interested in: male
+( Male yada Female seçen kullanıcıları birbiriyle eşleştir, bunların gender'i ya Man / trans man ya da woman / trans woman. Yani karşı cinsiyetleri eşleştir aynı cinsiyetlileri eşleştirmemelisin bu durumda. Çarpraz eşleştirme olacak male / female seçiminde )
+
+User 1: gender: Man or trans man or trans woman or woman, interested in: gay
+User 2: gender: man or trans man, interested in: gay
+( gay seçen kullanıcı gender olarak man yada trans man seçebilir, gay seçenleri birbiriyle eşleştir )
+
+User 1: gender: man or woman or trans man or trans women, interested in: bisexual
+User 2: gender: man or woman or trans man or trans women, interested in: bisexual
+( bisexual seçen kişilerin gender ne ise önemli değil bunları eşleştir. )
+
+> Lesbian seçenleri birbiriyle eşleştir "gender" farkına bakmadan.
+> Male seçenleri gender'i Man yada trans trans man olanlarla eşleştir
+> Female seçenleri gender'in womam yada trans woman olanlarla eşleştir
+> biseksual seçenlerin gender seçimi ne olursa olsun farketmez bunları eşleştir
+> gay seçenlerin gender seçimi man ve trans man olanlarla eşleştir
+
+Sonuç; Eşleştirme algoritmasını buna göre kurmalısın.
+
+3) Kullanıcı "3 paketten biri için" butonuna basar. Backend (Edge Function), Telegram Bot API'nin createInvoiceLink metodunu çağırır. Parametreler: currency: 'XTR', prices: paketlerdeki fiyatlar. Önemli: Dijital ürünler için provider_token boş bırakılmalıdır. Link oluşturmak için gerekli api leri komutları telegram api resmi sitelerinden alabilirsin. Oluşan link (t.me/invoice/...) kullanıcıya açılır. Ödeme Onayı (Pre-Checkout Query): Kullanıcı ödeme yap butonuna bastığında, Telegram sunucuları sizin botunuza bir pre_checkout_query güncellemesi gönderir. Edge Function webhook'u, kullanıcının stok durumunu veya işlemin geçerliliğini kontrol edip 10 saniye içinde answerPreCheckoutQuery(ok=True) yanıtını dönmelidir. Yanıt verilmezse ödeme iptal olur. Ödeme tamamlandığında successful_payment mesajı gelir. Veritabanı ledger yapisinda asla sadece "bakiye" tutmamalıyız, her işlemi kaydetmeliyiz.
+
+
+4) Baslangıcta kullanici olmadigi için hayalet kullanicilar olustur esleştirme kombinasyon sayisina göre, her kombinasyon için 3 hayalet kullanici oluştur. Görsel ve isim olarak sen belirle daha sonra değiştiririz bunları, supabase yapisina uygun olacak hepsi biliyosun ve gerçek testler yapacagiz artik.
+
+5) Kurulumda gerekli olabilecek şifreler varsa bana bildir. Hiçbir database bilgim yok bu yüzden her şeyi senin yapmanı istiyorum.
