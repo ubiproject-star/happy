@@ -3,9 +3,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')!;
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' } })
+        return new Response('ok', { headers: corsHeaders })
     }
 
     try {
@@ -40,12 +45,12 @@ serve(async (req) => {
 
         return new Response(
             JSON.stringify({ result: data.result }), // Returns the link (t.me/invoice/...)
-            { headers: { "Content-Type": "application/json" } },
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         )
     } catch (error) {
         return new Response(
             JSON.stringify({ error: error.message }),
-            { status: 400, headers: { "Content-Type": "application/json" } },
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         )
     }
 })

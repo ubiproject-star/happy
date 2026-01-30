@@ -110,7 +110,8 @@ export default function PurchaseModal({ onClose, onPurchase }) {
 
         } catch (err) {
             console.error('Payment Error:', err);
-            alert('Payment creation failed. Please try again.');
+            // Show detailed error to user for debugging
+            alert(`Payment Failed: ${err.message || JSON.stringify(err)}`);
             setIsLoading(false);
         }
     };
