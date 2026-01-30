@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 const SoundContext = createContext();
 
@@ -95,21 +95,6 @@ export const SoundProvider = ({ children }) => {
         }
     }, [muted, audioInitialized]);
 
-    const initAudio = () => {
-        if (!audioInitialized) {
-            setAudioInitialized(true);
-            // Unlock audio context
-            const music = musicRef.current;
-            if (music && !muted) {
-                music.play().catch(e => console.log("Init play error:", e));
-            }
-        }
-    };
-
-    const toggleMute = () => {
-        setMuted(prev => !prev);
-    };
-
     // Audio Pool for high-frequency sounds (Spin) to prevent GC lag
     const spinPool = useRef([]);
     const poolIndex = useRef(0);
@@ -124,7 +109,7 @@ export const SoundProvider = ({ children }) => {
         }
     }, []);
 
-    const playSound = (type) => {
+    const playSound = useCallback((type) => {
         if (muted) return;
         if (!SOUNDS[type]) {
             console.warn(`Sound type '${type}' not found.`);
@@ -146,18 +131,37 @@ export const SoundProvider = ({ children }) => {
             audio.volume = (type === 'power_click' || type === 'match') ? 1.0 : 0.7;
             audio.play().catch(e => console.error(`SFX play error for ${type}:`, e));
         }
-    };
+    }, [muted]);
 
-    const nextTrack = () => {
+    const nextTrack = useCallback(() => {
         setCurrentTrackIndex(prev => (prev + 1) % SOUNDS.playlist.length);
-    };
+    }, []);
 
-    const prevTrack = () => {
+    const prevTrack = useCallback(() => {
         setCurrentTrackIndex(prev => (prev - 1 + SOUNDS.playlist.length) % SOUNDS.playlist.length);
-    };
+    }, []);
+
+    const toggleMute = useCallback(() => {
+        setMuted(prev => !prev);
+    }, []);
+
+    const initAudio = useCallback(() => {
+        if (!audioInitialized) {
+            setAudioInitialized(true);
+            // Unlock audio context
+            const music = musicRef.current;
+            if (music && !muted) {
+                music.play().catch(e => console.log("Init play error:", e));
+            }
+        }
+    }, [audioInitialized, muted]);
+
+    const value = useMemo(() => ({
+        muted, toggleMute, playSound, initAudio, nextTrack, prevTrack
+    }), [muted, toggleMute, playSound, initAudio, nextTrack, prevTrack]);
 
     return (
-        <SoundContext.Provider value={{ muted, toggleMute, playSound, initAudio, nextTrack, prevTrack }}>
+        <SoundContext.Provider value={value}>
             {children}
         </SoundContext.Provider>
     );
