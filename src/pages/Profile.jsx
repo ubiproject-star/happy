@@ -77,7 +77,8 @@ export default function Profile() {
             }
 
             alert(t('saved_success') || 'Profile Saved!');
-            refreshUser(); // Refresh Context
+            alert(t('saved_success') || 'Profile Saved!');
+            await refreshUser(); // Refresh Context (AWAIT IT)
         } catch (error) {
             console.error('Save Failed:', error);
             alert(`Error: ${error.message}`);
@@ -195,6 +196,19 @@ export default function Profile() {
                                 value={profile.first_name}
                                 onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
                                 className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/10 text-white font-bold"
+                            />
+                        </div>
+
+                        {/* Photo URL (Manual Input) */}
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase ml-1">
+                                <ExternalLink size={14} /> {t('photo_url') || 'Photo Link'}
+                            </label>
+                            <input
+                                value={profile.photo_url}
+                                onChange={(e) => setProfile({ ...profile, photo_url: e.target.value })}
+                                placeholder="https://..."
+                                className="w-full p-4 rounded-xl bg-[#0f0f0f] border border-white/10 text-white font-mono text-xs truncate focus:ring-1 focus:ring-neon-blue outline-none"
                             />
                         </div>
 

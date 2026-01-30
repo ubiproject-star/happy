@@ -81,53 +81,58 @@ export const AuthProvider = ({ children }) => {
         // ---------------------------------------------------------
         // PHASE 2: DATA PERSISTENCE (The "Profile" View)
         // ---------------------------------------------------------
-        // This runs INDEPENDENTLY of Phase 1 to guarantee data safety.
+
         try {
-            // Check existence first
+            // 1. Check if user exists first (ReadOnly Check)
             const { data: existingUser } = await supabaseAdmin
                 .from('users')
-                .select('coins')
+                .select('*')
                 .eq('id', String(tgUser.id))
                 .single();
 
-            const updates = {
-                id: tgUser.id,
-                username: tgUser.username,
-                first_name: tgUser.first_name,
-                last_name: tgUser.last_name,
-                language_code: tgUser.language_code,
-                updated_at: new Date().toISOString()
-            };
+            let savedUser = existingUser;
 
-            // Bonus logic
             if (!existingUser) {
-                updates.coins = 100;
-            }
+                // 2. CREATE NEW USER (Insert Only)
+                console.log("AuthContext: Creating NEW User...");
 
-            // MASTER UPSERT: Use Admin Client to bypass any RLS that might be lingering
-            const { data: savedUser, error: upsertError } = await supabaseAdmin
-                .from('users')
-                .upsert(updates)
-                .select()
-                .single();
+                const newProfile = {
+                    id: tgUser.id,
+                    username: tgUser.username,
+                    first_name: tgUser.first_name,
+                    // photo_url: tgUser.photo_url, // Let default be null or handle elsewhere if needed, but safe to set initially
+                    language_code: tgUser.language_code,
+                    coins: 100, // Welcome Bonus
+                    created_at: new Date().toISOString()
+                };
 
-            if (upsertError) {
-                console.error("AuthContext: Data Upsert Failed 🛑", upsertError);
-                // Show user the error
-                setUser({
-                    ...tgUser,
-                    _source: `DATA ERROR: ${upsertError.message}`
-                });
+                const { data: newUser, error: insertError } = await supabaseAdmin
+                    .from('users')
+                    .insert(newProfile)
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+                savedUser = newUser;
             } else {
-                console.log("AuthContext: Data Persisted ✅", savedUser);
-                finalSource = authSuccess ? 'Fully Synced (Auth + Data)' : 'Data Only (Auth Pending)';
-
-                // Update Local State with DB Data
-                setUser({
-                    ...savedUser,
-                    _source: finalSource
-                });
+                // 3. USER EXISTS - Just Ensure Username is synced (Optional)
+                // We do NOT overwrite first_name or photo_url here.
+                if (existingUser.username !== tgUser.username) {
+                    await supabaseAdmin
+                        .from('users')
+                        .update({ username: tgUser.username })
+                        .eq('id', tgUser.id);
+                }
             }
+
+            console.log("AuthContext: Data Synced ✅", savedUser);
+            finalSource = authSuccess ? 'Fully Synced (Auth + Data)' : 'Data Only (Auth Pending)';
+
+            // Update Local State with DB Data
+            setUser({
+                ...savedUser,
+                _source: finalSource
+            });
 
         } catch (dataErr) {
             console.error("AuthContext: Data Phase Exception:", dataErr);
