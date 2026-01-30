@@ -8,10 +8,18 @@ const AuthContext = createContext({});
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const { tg } = useTelegram();
+    const { tg, user: telegramUser } = useTelegram();
     const [user, setUser] = useState(null); // Database User
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // OPTIMISTIC HYDRATION: Load Telegram data immediately to prevent UI flash/undefined
+    useEffect(() => {
+        if (telegramUser && !user) {
+            console.log("AuthContext: Hydrating with Unsafe Telegram User (Optimistic)", telegramUser);
+            setUser(telegramUser);
+        }
+    }, [telegramUser]); // Run when telegramUser becomes available
 
     const fetchUser = async (initData) => {
         if (!initData) {
