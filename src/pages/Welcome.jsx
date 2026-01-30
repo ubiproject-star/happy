@@ -244,7 +244,7 @@ export default function Welcome() {
         initAudio();
     }, [initAudio]);
 
-    const handleSpin = async () => {
+    const handleSpin = useCallback(async () => {
         handleInteractionStart();
 
         // 1. CHECK CREDITS (DB Source)
