@@ -114,8 +114,8 @@ export default function Matches() {
         return colors[index % colors.length];
     };
 
-    // Ensure we always render 1000 slots total (Real + Placeholders)
-    const totalSlots = 1000;
+    // Ensure we always render 12 slots total (Real + Placeholders) - Reduced from 1000 for performance
+    const totalSlots = 12;
     const realMatchCount = matches.length;
     const voidCount = Math.max(0, totalSlots - realMatchCount);
 
