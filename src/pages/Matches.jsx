@@ -15,7 +15,7 @@ export default function Matches() {
     const { playSound } = useSound();
     const { t } = useLanguage();
 
-    // Use a ref to ensure we only fetch ONCE per mount, ignoring all other dependency changes initially
+    // Use a ref to ensure we only fetch ONCE per mount
     const hasFetched = useRef(false);
 
     useEffect(() => {
@@ -73,13 +73,12 @@ export default function Matches() {
         };
 
         fetchMatches();
-    }, []); // Empty dependency array to FORCE single execution
+    }, []);
 
     const handleDelete = async (e, matchId) => {
         e.preventDefault();
         e.stopPropagation();
 
-        // Optimistic UI update
         setMatches(prev => prev.filter(m => m.match_id !== matchId));
 
         try {
@@ -118,8 +117,7 @@ export default function Matches() {
         return colors[index % colors.length];
     };
 
-    // Keep slot count moderate for performance
-    const totalSlots = 12;
+    const totalSlots = 1000;
     const realMatchCount = matches.length;
     const voidCount = Math.max(0, totalSlots - realMatchCount);
 
@@ -158,25 +156,30 @@ export default function Matches() {
                                 </div>
                             </div>
 
-                            {/* Delete Button */}
+                            {/* Delete Button - Restored Style */}
                             <button
                                 onClick={(e) => handleDelete(e, match_id)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-20"
+                                className="absolute -top-2 -right-2 z-20 p-1.5 bg-black/50 backdrop-blur-sm rounded-full shadow-md text-sm hover:scale-110 transition-transform cursor-pointer"
+                                title="Remove Match"
                             >
-                                <span className="text-[10px]">❌</span>
+                                ❌
                             </button>
                         </Link>
                     ))}
 
-                    {/* 2. Void Slots (Placeholders) */}
-                    {Array.from({ length: voidCount }).map((_, i) => (
-                        <div key={`void-${i}`} className="aspect-[3/4] rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-center opacity-30">
-                            <div className="text-center">
-                                <Plus size={16} className="text-white/20 mx-auto mb-1" />
-                                <span className="text-[8px] uppercase tracking-widest text-white/10">EMPTY</span>
+                    {/* 2. Void Slots (Placeholders) - Restored Style */}
+                    {Array.from({ length: voidCount }).map((_, i) => {
+                        const index = realMatchCount + i;
+                        return (
+                            <div key={`void-${i}`} className="relative aspect-[3/4] opacity-20 hover:opacity-40 transition-opacity">
+                                <div className={`absolute inset-0 rounded-xl p-[1px] bg-gradient-to-br ${getGradient(index)}`}>
+                                    <div className="w-full h-full bg-[#0a0a0a] rounded-[10px] flex items-center justify-center">
+                                        <Plus className="text-white/10" size={16} />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </Layout>
