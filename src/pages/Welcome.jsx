@@ -204,14 +204,39 @@ export default function Welcome() {
     // Initial Data Fetch
     useEffect(() => {
         const fetchUsers = async () => {
-            const { data } = await supabase.from('users').select('*').limit(20);
-            if (data) {
+            // Fallback ID for dev/testing if not logged in via Telegram
+            const myId = user?.id || 1001;
+
+            console.log("Fetching compatible users for:", myId);
+
+            // Use the RPC function to get tailored matches
+            const { data, error } = await supabase
+                .rpc('get_compatible_users', { requesting_user_id: myId });
+
+            if (error) {
+                console.error("Matching Error:", error);
+                // Fallback to random if RPC fails (e.g. function not created yet)
+                const { data: fallback } = await supabase.from('users').select('*').limit(20);
+                if (fallback) setMatches(fallback.sort(() => 0.5 - Math.random()));
+            } else if (data && data.length > 0) {
+                console.log(`Found ${data.length} compatible matches`);
                 const shuffled = data.sort(() => 0.5 - Math.random());
                 setMatches(shuffled);
+            } else {
+                console.log("No specific matches found, showing random pool");
+                const { data: fallback } = await supabase.from('users').select('*').limit(20);
+                if (fallback) setMatches(fallback.sort(() => 0.5 - Math.random()));
             }
         };
-        fetchUsers();
-    }, []);
+
+        if (user) fetchUsers();
+        // If no user immediately, wait a bit or let auth settle. 
+        // But for now, we trigger if user exists or not (using fallback).
+        if (!user) {
+            // Try fetching anyway with fallback ID for testing
+            fetchUsers();
+        }
+    }, [user]);
 
     // Provide a way to interact first
     const handleInteractionStart = useCallback(() => {
