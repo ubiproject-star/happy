@@ -10,6 +10,7 @@ import { Loader2, Plus, X } from 'lucide-react';
 export default function Matches() {
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [debugError, setDebugError] = useState(null);
     const { user: tgUser } = useTelegram();
     const { playSound } = useSound();
     const { t } = useLanguage();
@@ -81,6 +82,7 @@ export default function Matches() {
                 }
             } catch (error) {
                 console.error('Error in fetchMatches:', error);
+                setDebugError(error.message);
                 if (mounted) setLoading(false);
             }
         };
@@ -173,6 +175,13 @@ export default function Matches() {
                             </div>
                         </div>
                     ))}
+                </div>
+                <div className="fixed top-0 left-0 bg-black/80 text-green-500 p-2 text-[10px] z-50 pointer-events-none font-mono">
+                    DEBUG MODE:<br />
+                    Matches: {matches.length}<br />
+                    Loading: {loading.toString()}<br />
+                    UserID: {tgUser?.id || 'null'}<br />
+                    Error: {debugError || 'None'}
                 </div>
             </div>
         </Layout>
