@@ -17,7 +17,8 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (telegramUser && !user) {
             console.log("AuthContext: Hydrating with Unsafe Telegram User (Optimistic)", telegramUser);
-            setUser(telegramUser);
+            // Tag with source for debugging
+            setUser({ ...telegramUser, _source: 'Optimistic (Telegram)' });
         }
     }, [telegramUser]); // Run when telegramUser becomes available
 
@@ -62,12 +63,13 @@ export const AuthProvider = ({ children }) => {
 
                 if (freshUser && !refreshError) {
                     console.log('AuthContext: Force-refresh SUCCESS. New Photo:', freshUser.photo_url);
-                    setUser(freshUser);
+                    // SUCCESS - Tag Source
+                    setUser({ ...freshUser, _source: 'DB (Verified Fresh)' });
                 } else {
                     console.error('AuthContext: Force-refresh FAILED:', refreshError);
-                    // Fallback to the edge function data, but warn
-                    setUser(dbUser);
-                    // alert("Warning: Profile sync delayed (DB Fetch Failed)");
+                    // FALLBACK - Tag Source
+                    setUser({ ...dbUser, _source: 'Edge Function (Fallback)' });
+                    alert(`Sync Warning: DB Fetch Failed. ${refreshError?.message}`);
                 }
             }
         } catch (err) {
