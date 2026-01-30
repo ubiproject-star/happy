@@ -4,9 +4,11 @@ import './index.css'
 import App from './App.jsx'
 
 import { AuthProvider } from './contexts/AuthContext.jsx'
+import DebugLogger from './components/DebugLogger.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <DebugLogger />
     <SoundProvider>
       <LanguageProvider>
         <AuthProvider>
