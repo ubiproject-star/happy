@@ -9,6 +9,7 @@ import PurchaseModal from '../components/PurchaseModal';
 import { ChevronLeft, Volume2, VolumeX, Sparkles, Play, Pause, SkipForward, SkipBack, Flame } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Artistic Components ---
 
@@ -172,60 +173,254 @@ const AuroraBackground = () => (
 
 // --- Main Page Component ---
 
-import { useAuth } from '../contexts/AuthContext';
-
-// ...
-
 export default function Welcome() {
-    // const { user } = useTelegram(); // OLD
-    const { user } = useAuth(); // NEW: Gets DB user with updated photo
+    const { user } = useAuth(); // Gets DB user with updated photo
     const navigate = useNavigate();
-    // ...
+    const { playSound, initAudio, muted, toggleMute, nextTrack, prevTrack } = useSound();
+    const { t } = useLanguage();
 
-    // ...
+    // --- STATE ---
+    const [matches, setMatches] = useState([]);
+    const [currentMatch, setCurrentMatch] = useState(null);
+    const [spinning, setSpinning] = useState(false);
+    const [showMatchOverlay, setShowMatchOverlay] = useState(false);
 
-    {/* Left Lens: Me */ }
-    <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-        <CrystalLens borderColor="border-blue-400/20" glowColor="group-hover:shadow-blue-500/40">
-            <UserAvatar
-                url={user?.photo_url || "https://i.pravatar.cc/300?img=11"}
-                alt="My Profile"
-            />
-        </CrystalLens>
-    </motion.div>
+    // Credits System
+    const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+    const [credits, setCredits] = useState(() => {
+        const saved = localStorage.getItem('searchCredits');
+        return saved !== null ? parseInt(saved, 10) : 3;
+    });
 
-    {/* Right Lens: The Unknown */ }
-    <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-        <CrystalLens borderColor="border-pink-400/20" glowColor="group-hover:shadow-pink-500/40">
-            <SlotMachine
-                currentMatch={currentMatch}
-                spinning={spinning}
-                onNavigate={() => currentMatch && setShowMatchOverlay(true)}
-            />
-        </CrystalLens>
-    </motion.div>
+    useEffect(() => {
+        localStorage.setItem('searchCredits', credits);
+    }, [credits]);
 
-                    </div >
+    const handlePurchase = (amount) => {
+        setCredits(prev => prev + amount);
+        setShowPurchaseModal(false);
+        playSound('match'); // Success sound
+    };
 
-        {/* The Core: Action & Feedback */ }
-        < div className = "flex flex-col items-center gap-8" >
-            {/* The Trigger */ }
-            < EnergyCore spinning = { spinning } onClick = { handleSpin } />
+    // Initial Data Fetch
+    useEffect(() => {
+        const fetchUsers = async () => {
+            // Fallback ID for dev/testing if not logged in via Telegram
+            const myId = user?.id || 1001;
 
-                {/* The Voice */ }
-                < SonicWave spinning = { spinning } />
-                    </div >
+            console.log("Fetching compatible users for:", myId);
 
-                </section >
+            // Use the RPC function to get tailored matches
+            const { data, error } = await supabase
+                .rpc('get_compatible_users', { requesting_user_id: myId });
 
-        {/* Footer / Status */ }
-        < div className = "absolute bottom-6 w-full text-center z-10 pointer-events-none" >
-            <span className="text-[9px] uppercase tracking-[0.3em] text-white/20">
-                {spinning ? t('searching') : t('system_ready')}
-            </span>
-                </div >
+            if (error) {
+                console.error("Matching Error:", error);
+                // Fallback to random if RPC fails (e.g. function not created yet)
+                const { data: fallback } = await supabase.from('users').select('*').limit(20);
+                if (fallback) setMatches(fallback.sort(() => 0.5 - Math.random()));
+            } else if (data && data.length > 0) {
+                console.log(`Found ${data.length} compatible matches`);
+                const shuffled = data.sort(() => 0.5 - Math.random());
+                setMatches(shuffled);
+            } else {
+                console.log("No specific matches found, showing random pool");
+                const { data: fallback } = await supabase.from('users').select('*').limit(20);
+                if (fallback) setMatches(fallback.sort(() => 0.5 - Math.random()));
+            }
+        };
 
-            </main >
-        </Layout >
+        if (user) fetchUsers();
+        // If no user immediately, wait a bit or let auth settle. 
+        // But for now, we trigger if user exists or not (using fallback).
+        if (!user) {
+            // Try fetching anyway with fallback ID for testing
+            fetchUsers();
+        }
+    }, [user]);
+
+    // Provide a way to interact first
+    const handleInteractionStart = useCallback(() => {
+        initAudio();
+    }, [initAudio]);
+
+    const handleSpin = useCallback(() => {
+        handleInteractionStart();
+
+        // CHECK CREDITS
+        if (credits <= 0) {
+            setShowPurchaseModal(true);
+            return;
+        }
+
+        if (spinning || matches.length === 0) return;
+
+        // DECREMENT CREDIT
+        setCredits(prev => prev - 1);
+
+        setSpinning(true);
+        setShowMatchOverlay(false);
+        playSound('power_click'); // Ultra Dopamine Start
+
+        let spinCount = 0;
+        const maxSpins = 15;
+        const speed = 100;
+
+        const spinInterval = setInterval(() => {
+            playSound('spin'); // Tick every spin
+
+            const randomIndex = Math.floor(Math.random() * matches.length);
+            setCurrentMatch(matches[randomIndex]);
+
+            spinCount++;
+            if (spinCount >= maxSpins) {
+                clearInterval(spinInterval);
+                setSpinning(false);
+
+                // Trigger Match
+                playSound('match');
+                setShowMatchOverlay(true);
+            }
+        }, speed);
+    }, [spinning, matches, playSound, handleInteractionStart, credits]);
+
+    const handleChat = async () => {
+        playSound('click');
+        if (currentMatch) {
+            // Navigate only. Saving happens explicitly on the Profile page.
+            navigate(`/user/${currentMatch.id}`);
+        }
+    };
+
+    const handleKeepSwiping = () => {
+        playSound('refresh');
+        setShowMatchOverlay(false);
+    };
+
+    return (
+        <Layout>
+            <main onClick={handleInteractionStart} className="flex flex-col h-full relative overflow-hidden font-sans">
+                <AuroraBackground />
+
+                {/* Match Overlay */}
+                <AnimatePresence>
+                    {showMatchOverlay && currentMatch && (
+                        <MatchOverlay
+                            user1={user}
+                            user2={currentMatch}
+                            onChat={handleChat}
+                            onKeepSwiping={handleKeepSwiping}
+                        />
+                    )}
+                </AnimatePresence>
+
+                {/* Purchase Modal */}
+                <AnimatePresence>
+                    {showPurchaseModal && (
+                        <PurchaseModal
+                            onClose={() => setShowPurchaseModal(false)}
+                            onPurchase={handlePurchase}
+                        />
+                    )}
+                </AnimatePresence>
+
+                {/* Header Section */}
+                <header className="flex justify-between items-center relative z-10 mb-8 px-4 pt-4 md:pt-10">
+                    {/* Left: Back */}
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-white/70 hover:text-white transition-colors"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+
+                    {/* Center: Music Player (Premium) */}
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); prevTrack(); }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95"
+                        >
+                            <SkipBack size={14} className="fill-white text-white" />
+                        </button>
+
+                        <div className="h-4 w-[1px] bg-white/10" />
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors active:scale-95"
+                        >
+                            {muted ? <Play size={16} className="fill-white text-white ml-0.5" /> : <Pause size={16} className="fill-white text-white" />}
+                        </button>
+
+                        <div className="h-4 w-[1px] bg-white/10" />
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); nextTrack(); }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors active:scale-95"
+                        >
+                            <SkipForward size={14} className="fill-white text-white" />
+                        </button>
+                    </div>
+
+                    {/* Right: Credits Counter */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowPurchaseModal(true); }}
+                        className="h-10 px-4 rounded-xl border border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center cursor-pointer shadow-lg hover:bg-white/10 transition-all active:scale-95"
+                    >
+                        <span className="text-xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                            {credits}
+                        </span>
+                    </button>
+                </header>
+
+                {/* The Oracle Interface */}
+                <section className="flex-1 flex flex-col items-center justify-center relative z-10 -mt-10" aria-label="Digital Oracle">
+
+                    {/* The Eyes: Crystal Lenses */}
+                    <div className="flex items-center justify-center gap-6 mb-16 w-full max-w-md px-4">
+
+                        {/* Left Lens: Me */}
+                        <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                            <CrystalLens borderColor="border-blue-400/20" glowColor="group-hover:shadow-blue-500/40">
+                                <UserAvatar
+                                    url={user?.photo_url || "https://i.pravatar.cc/300?img=11"}
+                                    alt="My Profile"
+                                />
+                            </CrystalLens>
+                        </motion.div>
+
+                        {/* Right Lens: The Unknown */}
+                        <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+                            <CrystalLens borderColor="border-pink-400/20" glowColor="group-hover:shadow-pink-500/40">
+                                <SlotMachine
+                                    currentMatch={currentMatch}
+                                    spinning={spinning}
+                                    onNavigate={() => currentMatch && setShowMatchOverlay(true)}
+                                />
+                            </CrystalLens>
+                        </motion.div>
+
+                    </div>
+
+                    {/* The Core: Action & Feedback */}
+                    <div className="flex flex-col items-center gap-8">
+                        {/* The Trigger */}
+                        <EnergyCore spinning={spinning} onClick={handleSpin} />
+
+                        {/* The Voice */}
+                        <SonicWave spinning={spinning} />
+                    </div>
+
+                </section>
+
+                {/* Footer / Status */}
+                <div className="absolute bottom-6 w-full text-center z-10 pointer-events-none">
+                    <span className="text-[9px] uppercase tracking-[0.3em] text-white/20">
+                        {spinning ? t('searching') : t('system_ready')}
+                    </span>
+                </div>
+
+            </main>
+        </Layout>
     );
 }
