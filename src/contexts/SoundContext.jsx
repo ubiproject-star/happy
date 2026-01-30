@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
 
 const SoundContext = createContext();
 
@@ -31,23 +32,56 @@ export const SoundProvider = ({ children }) => {
     const [muted, setMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
 
+    // Dynamic Playlist State
+    const [playlist, setPlaylist] = useState(SOUNDS.playlist);
+
     // Singleton ref for music player
     const musicRef = useRef(null);
     const [audioInitialized, setAudioInitialized] = useState(false);
 
-    // Initialize Audio Object Once
+    // Fetch Cloud Music on Mount
     useEffect(() => {
-        musicRef.current = new Audio(SOUNDS.playlist[0]);
-        musicRef.current.volume = 0.4;
-        musicRef.current.loop = false; // Important: No loop, we handle playlist
+        const fetchMusic = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('app_music')
+                    .select('*')
+                    .order('created_at', { ascending: true }); // Keep consistent order or random
 
-        return () => {
-            if (musicRef.current) {
-                musicRef.current.pause();
-                musicRef.current = null;
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Map DB entries to Storage URLs
+                    const cloudTracks = data.map(track => {
+                        const { data: urlData } = supabase.storage
+                            .from('music')
+                            .getPublicUrl(track.file_path);
+                        return urlData.publicUrl;
+                    });
+
+                    console.log("Loaded Cloud Playlist:", cloudTracks.length, "tracks");
+                    setPlaylist(cloudTracks);
+                }
+            } catch (err) {
+                console.warn("Using Default Playlist (Cloud Music not ready):", err.message);
             }
         };
+
+        fetchMusic();
     }, []);
+
+    // Initialize Audio Object Once (or re-init if playlist changes significantly?)
+    // Actually, we just update the source naturally via the effect below.
+    // However, if playlist changes, we might want to start from track 0 or keep index.
+
+    useEffect(() => {
+        // Initial setup only
+        if (!musicRef.current) {
+            musicRef.current = new Audio(playlist[0]);
+            musicRef.current.volume = 0.4;
+            musicRef.current.loop = false;
+        }
+    }, []); // Run once to Create Ref
 
     // Handle Playlist Progression
     useEffect(() => {
@@ -56,12 +90,12 @@ export const SoundProvider = ({ children }) => {
 
         const handleEnded = () => {
             console.log("Track ended. Advancing.");
-            setCurrentTrackIndex(prev => (prev + 1) % SOUNDS.playlist.length);
+            setCurrentTrackIndex(prev => (prev + 1) % playlist.length);
         };
 
         music.addEventListener('ended', handleEnded);
         return () => music.removeEventListener('ended', handleEnded);
-    }, []);
+    }, [playlist]);
 
     // Handle Track Change & Playback
     useEffect(() => {
@@ -69,10 +103,10 @@ export const SoundProvider = ({ children }) => {
         if (!music) return;
 
         // Changing Track
-        if (music.src !== SOUNDS.playlist[currentTrackIndex]) {
+        if (playlist.length > 0 && music.src !== playlist[currentTrackIndex]) {
             // Pause current track before changing source to ensure clean transition
             music.pause();
-            music.src = SOUNDS.playlist[currentTrackIndex];
+            music.src = playlist[currentTrackIndex]; // Use Dynamic Playlist
             music.load();
 
             // If we are allowed to play, play the new track
@@ -80,7 +114,7 @@ export const SoundProvider = ({ children }) => {
                 music.play().catch(e => console.log("Auto-advance play error:", e));
             }
         }
-    }, [currentTrackIndex, audioInitialized, muted]);
+    }, [currentTrackIndex, audioInitialized, muted, playlist]);
 
     // Handle Mute/Unmute
     useEffect(() => {
@@ -134,12 +168,12 @@ export const SoundProvider = ({ children }) => {
     }, [muted]);
 
     const nextTrack = useCallback(() => {
-        setCurrentTrackIndex(prev => (prev + 1) % SOUNDS.playlist.length);
-    }, []);
+        setCurrentTrackIndex(prev => (prev + 1) % playlist.length);
+    }, [playlist]);
 
     const prevTrack = useCallback(() => {
-        setCurrentTrackIndex(prev => (prev - 1 + SOUNDS.playlist.length) % SOUNDS.playlist.length);
-    }, []);
+        setCurrentTrackIndex(prev => (prev - 1 + playlist.length) % playlist.length);
+    }, [playlist]);
 
     const toggleMute = useCallback(() => {
         setMuted(prev => !prev);
