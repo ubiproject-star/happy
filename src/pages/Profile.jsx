@@ -8,69 +8,45 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
+import { useAuth } from '../contexts/AuthContext';
+
 export default function Profile() {
     const { user: tgUser } = useTelegram();
+    const { user: dbUser, refreshUser, loading: authLoading } = useAuth(); // Use DB User
     const { t, language } = useLanguage();
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    // Initial State
+    // Initial State - Prefer DB User data significantly
     const [profile, setProfile] = useState({
-        first_name: '',
-        photo_url: '',
-        instagram_handle: '',
-        gender: 'man',
-        orientation: 'female', // Maps to interested_in
-        region: 'Europe',
-        age: 24,
-        bio: ''
+        first_name: dbUser?.first_name || tgUser?.first_name || '',
+        photo_url: dbUser?.photo_url || tgUser?.photo_url || '',
+        instagram_handle: dbUser?.instagram_handle || '',
+        gender: dbUser?.gender || 'man',
+        orientation: dbUser?.interested_in || 'female',
+        region: dbUser?.region || 'Europe',
+        age: dbUser?.birth_year ? new Date().getFullYear() - dbUser?.birth_year : 24,
+        bio: dbUser?.bio || ''
     });
 
-    // 1. Fetch Profile on Mount
+    // Sync state when dbUser changes (e.g. after refreshUser)
     useEffect(() => {
-        const fetchProfile = async () => {
-            const myId = tgUser?.id; // || 12345 (debug)
-            if (!myId) return;
-
-            try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', myId)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') {
-                    console.error('Error fetching profile:', error);
-                }
-
-                if (data) {
-                    setProfile({
-                        first_name: data.first_name || tgUser?.first_name || '',
-                        photo_url: data.photo_url || tgUser?.photo_url || '',
-                        instagram_handle: data.instagram_handle || '',
-                        gender: data.gender || 'man',
-                        orientation: data.interested_in || 'female',
-                        region: data.region || 'Europe',
-                        age: data.birth_year ? new Date().getFullYear() - data.birth_year : 24,
-                        bio: data.bio || ''
-                    });
-                } else {
-                    // New user, prep default state
-                    setProfile(prev => ({
-                        ...prev,
-                        first_name: tgUser?.first_name || '',
-                        photo_url: tgUser?.photo_url || ''
-                    }));
-                }
-            } catch (err) {
-                console.error("Fetch Exception:", err);
-            }
-        };
-
-        fetchProfile();
-    }, [tgUser]);
+        if (dbUser) {
+            setProfile(prev => ({
+                ...prev,
+                first_name: dbUser.first_name || prev.first_name,
+                photo_url: dbUser.photo_url || prev.photo_url,
+                instagram_handle: dbUser.instagram_handle || prev.instagram_handle,
+                gender: dbUser.gender || prev.gender,
+                orientation: dbUser.interested_in || prev.orientation,
+                region: dbUser.region || prev.region,
+                age: dbUser.birth_year ? new Date().getFullYear() - dbUser.birth_year : prev.age,
+                bio: dbUser.bio || prev.bio
+            }));
+        }
+    }, [dbUser]);
 
     // 2. Handle Save
     const handleSave = async () => {
