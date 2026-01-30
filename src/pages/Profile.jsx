@@ -1,53 +1,153 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import useTelegram from '../hooks/useTelegram';
 import Layout from '../components/Layout';
 import LiveBackground from '../components/LiveBackground';
-import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send, Languages } from 'lucide-react';
+import { Camera, Save, Sparkles, User, MapPin, Calendar, Heart, Globe, Instagram, Send, Languages, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function Profile() {
     const { user: tgUser } = useTelegram();
     const { t, language } = useLanguage();
     const navigate = useNavigate();
 
-    // State including new variables
-    const [profile, setProfile] = useState(() => {
-        // Mock data or TG data
-        const base = tgUser ? {
-            first_name: tgUser.first_name,
-            photo_url: tgUser.photo_url || 'https://randomuser.me/api/portraits/lego/1.jpg'
-        } : {
-            first_name: 'Demo User',
-            photo_url: 'https://randomuser.me/api/portraits/men/99.jpg'
-        };
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
-        return {
-            ...base,
-            instagram_handle: '',
-            gender: 'Man',
-            orientation: 'Female',
-            region: 'Europe',
-            age: 24
-        };
+    // Initial State
+    const [profile, setProfile] = useState({
+        first_name: '',
+        photo_url: '',
+        instagram_handle: '',
+        gender: 'man',
+        orientation: 'female', // Maps to interested_in
+        region: 'Europe',
+        age: 24,
+        bio: ''
     });
 
-    const [loading, setLoading] = useState(false);
+    // 1. Fetch Profile on Mount
+    useEffect(() => {
+        const fetchProfile = async () => {
+            const myId = tgUser?.id; // || 12345 (debug)
+            if (!myId) return;
 
-    // Options - We map these to translation keys for display
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', myId)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Error fetching profile:', error);
+                }
+
+                if (data) {
+                    setProfile({
+                        first_name: data.first_name || tgUser?.first_name || '',
+                        photo_url: data.photo_url || tgUser?.photo_url || '',
+                        instagram_handle: data.instagram_handle || '',
+                        gender: data.gender || 'man',
+                        orientation: data.interested_in || 'female',
+                        region: data.region || 'Europe',
+                        age: data.birth_year ? new Date().getFullYear() - data.birth_year : 24,
+                        bio: data.bio || ''
+                    });
+                } else {
+                    // New user, prep default state
+                    setProfile(prev => ({
+                        ...prev,
+                        first_name: tgUser?.first_name || '',
+                        photo_url: tgUser?.photo_url || ''
+                    }));
+                }
+            } catch (err) {
+                console.error("Fetch Exception:", err);
+            }
+        };
+
+        fetchProfile();
+    }, [tgUser]);
+
+    // 2. Handle Save
+    const handleSave = async () => {
+        if (!tgUser?.id) return;
+        setLoading(true);
+
+        try {
+            const updates = {
+                first_name: profile.first_name,
+                photo_url: profile.photo_url,
+                instagram_handle: profile.instagram_handle,
+                gender: profile.gender,
+                interested_in: profile.orientation, // Mapping back
+                region: profile.region,
+                birth_year: new Date().getFullYear() - parseInt(profile.age),
+                bio: profile.bio,
+                updated_at: new Date()
+            };
+
+            const { error } = await supabase
+                .from('users')
+                .upsert({ id: tgUser.id, ...updates });
+
+            if (error) throw error;
+
+            // alert(t('saved_success') || 'Saved!'); // Optional: Feedback
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Failed to save profile.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 3. Handle Image Upload
+    const handleImageUpload = async (event) => {
+        if (!event.target.files || event.target.files.length === 0) {
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const file = event.target.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${tgUser?.id || 'unknown'}/${Math.random()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // Upload to 'avatars' bucket
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                throw uploadError;
+            }
+
+            // Get Public URL
+            const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+            if (data) {
+                setProfile(prev => ({ ...prev, photo_url: data.publicUrl }));
+            }
+
+        } catch (error) {
+            console.error('Upload Error:', error);
+            alert('Error uploading image: ' + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    // Options
     const GENDER_OPTIONS = ['man', 'woman', 'trans_man', 'trans_woman'];
     const ORIENTATION_OPTIONS = ['male', 'female', 'lesbian', 'gay', 'bisexual'];
     const REGION_OPTIONS = ['North America', 'Asia', 'Europe', 'Africa', 'Middle East', 'South America'];
 
-    const handleSave = async () => {
-        setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-    };
-
-    // Modern Box Selection Component
+    // ... (SelectionGrid Component remains the same)
     const SelectionGrid = ({ label, icon: Icon, options, value, onChange, translateOption = false }) => (
         <div className="space-y-3">
             <label className="flex items-center gap-2 text-xs font-bold tracking-widest text-neon-blue uppercase ml-1 drop-shadow-[0_0_5px_rgba(0,243,255,0.5)]">
@@ -55,14 +155,7 @@ export default function Profile() {
             </label>
             <div className="grid grid-cols-2 gap-3">
                 {options.map((opt) => {
-                    // Display Text: Translate if it's a key, else show literal
                     const displayText = translateOption ? t(opt) : opt;
-
-                    // Comparison: We compare raw values (e.g. 'man') if that's what we store, 
-                    // or we store the translated value? 
-                    // Ideally we store constants ('man') and display translations. 
-                    // Assuming 'value' is the constant.
-
                     return (
                         <button
                             key={opt}
@@ -98,19 +191,35 @@ export default function Profile() {
 
                 <div className="max-w-md mx-auto space-y-8">
 
-                    {/* AVATAR: Static & Clean */}
+                    {/* AVATAR: Uploadable */}
                     <div className="flex justify-center">
                         <div className="relative group">
                             <div className="w-32 h-32 rounded-full p-[2px] bg-gradient-to-tr from-neon-blue to-neon-purple shadow-[0_0_30px_rgba(0,243,255,0.2)]">
-                                <img
-                                    src={profile.photo_url}
-                                    alt="Profile"
-                                    className="w-full h-full rounded-full object-cover border-4 border-[#0a0a0a]"
-                                />
+                                {uploading ? (
+                                    <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                                        <Loader2 className="animate-spin text-neon-blue" />
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={profile.photo_url || `https://i.pravatar.cc/300?u=${tgUser?.id}`}
+                                        alt="Profile"
+                                        className="w-full h-full rounded-full object-cover border-4 border-[#0a0a0a]"
+                                        onError={(e) => e.target.src = `https://i.pravatar.cc/300?u=${tgUser?.id}`}
+                                    />
+                                )}
                             </div>
-                            <button className="absolute bottom-0 right-0 p-2 bg-[#1a1a1a] text-neon-blue rounded-full border border-neon-blue/30 shadow-lg hover:scale-110 transition-transform">
+
+                            {/* Hidden File Input + Label Trigger */}
+                            <label className="absolute bottom-0 right-0 p-2 bg-[#1a1a1a] text-neon-blue rounded-full border border-neon-blue/30 shadow-lg hover:scale-110 transition-transform cursor-pointer">
                                 <Camera size={16} />
-                            </button>
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={uploading}
+                                />
+                            </label>
                         </div>
                     </div>
 
@@ -153,7 +262,7 @@ export default function Profile() {
                             <input
                                 type="number"
                                 value={profile.age}
-                                onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) })}
+                                onChange={(e) => setProfile({ ...profile, age: e.target.value })}
                                 className="
                                     w-full p-4 rounded-xl 
                                     bg-[#1a1a1a] border border-white/10 
@@ -189,7 +298,6 @@ export default function Profile() {
                             options={REGION_OPTIONS}
                             value={profile.region}
                             onChange={(val) => setProfile({ ...profile, region: val })}
-                            // Region names are usually proper nouns, keeping as is for now or translate if added to dict
                             translateOption={false}
                         />
 
