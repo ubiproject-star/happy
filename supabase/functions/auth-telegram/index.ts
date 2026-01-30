@@ -76,7 +76,7 @@ serve(async (req) => {
                 first_name,
                 last_name,
                 username,
-                photo_url,
+                // photo_url: We do NOT upsert this, to allow custom avatars to persist!
                 language_code,
                 updated_at: new Date().toISOString()
             })
