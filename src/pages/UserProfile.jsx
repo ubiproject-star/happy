@@ -83,7 +83,7 @@ export default function UserProfile() {
                     gender: data.gender || 'man',
                     interested_in: data.interested_in || 'female',
                     region: data.region || 'World',
-                    birth_year: data.birth_year || 2000,
+                    age: data.age || 25, // Fallback if null, but prefer DB
                     instagram_handle: data.instagram_handle,
                     username: data.username,
                 });
@@ -235,7 +235,7 @@ export default function UserProfile() {
                                     <Sparkles size={14} /> {t('age')}
                                 </label>
                                 <div className="w-full p-4 rounded-xl bg-[#1a1a1a] border border-white/10 text-white font-bold text-center tracking-widest shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-                                    {profile.birth_year ? `${new Date().getFullYear() - profile.birth_year}` : 'N/A'}
+                                    {profile.age || 'N/A'}
                                 </div>
                             </div>
                             <ReadOnlyGrid
