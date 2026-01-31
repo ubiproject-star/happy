@@ -3,8 +3,8 @@ export const translations = {
         nativeName: "English",
         // General
         loading: "Loading...",
-        save: "STORAGE",
-        saved_success: "STORED",
+        save: "SAVE",
+        saved_success: "SAVED",
         update: "UPDATE",
         cancel: "Cancel",
         // Navigation
