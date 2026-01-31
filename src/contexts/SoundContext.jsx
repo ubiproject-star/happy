@@ -9,21 +9,16 @@ const SoundContext = createContext();
 const SOUNDS = {
     // Playlist: Fashion -> LoFi -> Dreamy -> Ambient Wave
     playlist: [
-        // 1. Original Favorites
-        'https://cdn.pixabay.com/download/audio/2022/11/22/audio_febc508520.mp3?filename=fashion-house-126667.mp3', // Fashion House
-        'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3',    // LoFi Study
-        'https://cdn.pixabay.com/download/audio/2022/10/25/audio_5575ad51c5.mp3?filename=abstract-fashion-pop-123760.mp3', // Dreamy
-        'https://cdn.pixabay.com/download/audio/2021/09/06/audio_349944df3e.mp3?filename=chill-abstract-intention-12099.mp3', // Ambient
-
-        // 2. New Erotic & Chill Additions (High Dopamine)
-        'https://assets.mixkit.co/music/preview/mixkit-hazy-after-hours-132.mp3', // "Hazy After Hours" - Deep, Sensual
-        'https://assets.mixkit.co/music/preview/mixkit-serene-view-443.mp3',      // "Serene View" - Relaxing
-        'https://assets.mixkit.co/music/preview/mixkit-sleepy-cat-135.mp3',       // "Sleepy Cat" - Cozy, Intimate
-        'https://cdn.pixabay.com/download/audio/2022/05/20/audio_2c647ec631.mp3?filename=hiding-place-in-the-forest-111724.mp3', // "Hiding Place" - Ethereal, Nature
-        'https://assets.mixkit.co/music/preview/mixkit-valley-sunset-127.mp3',    // "Valley Sunset" - Warm, Romantic
-        'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',       // "Deep Urban" - Cool, Confident
-        'https://assets.mixkit.co/music/preview/mixkit-complicated-281.mp3',      // "Complicated" - Emotional Depth
-        'https://assets.mixkit.co/music/preview/mixkit-cat-walk-371.mp3',         // "Cat Walk" - Sassy, Playful
+        '/music/fashion-house.mp3', // Fashion House
+        '/music/lofi-study.mp3',    // LoFi Study
+        '/music/track_01.mp3',      // Midnight Velvet (Erotic)
+        '/music/track_04.mp3',      // Slow Touch (Erotic)
+        '/music/track_08.mp3',      // Bedroom Eyes (Erotic)
+        '/music/track_11.mp3',      // Euphoria Rising (Dopamine)
+        '/music/track_13.mp3',      // Skin to Skin (Erotic)
+        '/music/track_14.mp3',      // Pulse (Dopamine)
+        '/music/track_18.mp3',      // Neuro Bliss (Dopamine)
+        '/music/track_24.mp3',      // Endorphin Hit (Dopamine)
     ],
     // Mechanical Tick
     spin: 'https://cdn.freesound.org/previews/254/254316_4062622-lq.mp3',
