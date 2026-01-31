@@ -20,9 +20,18 @@ export default function UserProfile() {
     const handleLike = async () => {
         if (!id || isLiked) return;
 
+        // Prevent self-match crash
+        const myId = tgUser?.id ? tgUser.id.toString() : '1001';
+        if (myId === id.toString()) {
+            console.warn("Cannot match with self");
+            return;
+        }
+
         try {
-            const myId = tgUser?.id?.toString() || 'user_m_1';
-            // Ensure ID is passed correctly (Supabase often needs strings for UUIDs or ints depending on schema)
+            // FALLBACK ID MATCHING DB TYPE (BigInt)
+            // If tgUser is missing (browser dev), use a valid existing ID from seed (e.g. 1001)
+            // 'user_m_1' was causing type error (invalid input syntax for type bigint)
+            const myId = tgUser?.id ? tgUser.id.toString() : '1001';
             const targetId = id.toString();
 
             console.log(`Attempting match: ${myId} -> ${targetId}`);
@@ -41,13 +50,14 @@ export default function UserProfile() {
             }, 1000);
         } catch (error) {
             console.error('Error liking user:', error);
+            // Optional: Show UI error
         }
     };
 
     const checkMatchStatus = async () => {
         if (!id) return;
         try {
-            const myId = tgUser?.id?.toString() || 'user_m_1';
+            const myId = tgUser?.id ? tgUser.id.toString() : '1001';
             const targetId = id.toString();
 
             const { data, error } = await supabase
