@@ -124,14 +124,12 @@ export default function Matches() {
     return (
         <Layout>
             <div className="w-full h-full min-h-full bg-black pb-32 px-2 pt-4 md:pt-10 font-sans overflow-x-hidden box-border">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-sm">
-                        {t('your_favorites')}
+                {/* Header Title */}
+                <div className="relative text-center mb-8 glass py-4 rounded-2xl border border-white/10 mx-auto max-w-xs sm:max-w-md mt-2">
+                    <h1 className="text-2xl font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent drop-shadow-sm">
+                        {t('quantum_entanglements')}
                     </h1>
-                    <p className="text-gray-500 text-[10px] tracking-[0.3em] mt-2 uppercase">{t('quantum_entanglements')}</p>
                 </div>
-
                 {/* 3-Column Grid */}
                 <div className="grid grid-cols-3 gap-2">
                     {/* 1. Real Matches */}
